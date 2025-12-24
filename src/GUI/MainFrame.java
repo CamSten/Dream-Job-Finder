@@ -1,11 +1,16 @@
 package GUI;
 
+import Controller.ApplicationManager;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainFrame extends JFrame implements Subscriber {
+    private List<Subscriber> subscribers = new ArrayList<>();
     private JPanel centerPanel;
     private JPanel bottomPanel;
     private MenuPanel menuPanel;
@@ -13,19 +18,23 @@ public class MainFrame extends JFrame implements Subscriber {
     private AdderPanel adderPanel;
     private MatchPanel matchPanel;
     private ResultPanel resultPanel;
-    public enum AdderObject {SEEKER, OPENING}
+    public enum AdderObject {SEEKER, OPENING};
+    public static Controller.ApplicationManager applicationManager;
 
-    public MainFrame(){
+    public MainFrame(ApplicationManager applicationManager){
+        System.out.println("MainFrame constructor was reached");
+        this.applicationManager = applicationManager;
         setTitle("DreamJobFinder");
         setVisible(true);
         setLayout(new BorderLayout());
         setEnabled(true);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setMinimumSize(new Dimension(500, 500));
+        setMinimumSize(new Dimension(575, 525));
         setBackground(Colors.getBackgroundColor());
 
         centerPanel = new JPanel(new BorderLayout());
         centerPanel.setBackground(Colors.getBackgroundColor());
+        centerPanel.setMinimumSize(new Dimension(550, 500));
         centerPanel.setOpaque(false);
         add(centerPanel, BorderLayout.CENTER);
         bottomPanel = new JPanel();
@@ -33,13 +42,12 @@ public class MainFrame extends JFrame implements Subscriber {
         bottomPanel.setOpaque(false);
         add(bottomPanel, BorderLayout.SOUTH);
         showMenuPanel();
-        menuPanel.addSubscriber(this);
     }
 
     public void showMenuPanel(){
         removeCenterPanelContent();
         if (menuPanel == null){
-            this.menuPanel = new MenuPanel();
+            this.menuPanel = new MenuPanel(this);
         }
         if (bottomPanel != null){
             bottomPanel.removeAll();
@@ -50,7 +58,7 @@ public class MainFrame extends JFrame implements Subscriber {
     public void showSearchPanel(){
         removeCenterPanelContent();
         if (searchPanel == null){
-            this.searchPanel = new SearchPanel();
+            this.searchPanel = new SearchPanel(this);
         }
         centerPanel.add(searchPanel, BorderLayout.CENTER);
         adjustCenterPanel(searchPanel);
@@ -59,8 +67,9 @@ public class MainFrame extends JFrame implements Subscriber {
     public void showAdderPanel(AdderObject adderObject){
         removeCenterPanelContent();
         if (adderPanel == null){
-            this.adderPanel = new AdderPanel(adderObject);
+            this.adderPanel = new AdderPanel(this, adderObject);
         }
+        applicationManager.addSubscriber(adderPanel);
         centerPanel.add(adderPanel, BorderLayout.CENTER);
         adjustCenterPanel(adderPanel);
         adjustBottomPanel();
@@ -68,21 +77,30 @@ public class MainFrame extends JFrame implements Subscriber {
     public void showMatchPanel(){
         removeCenterPanelContent();
         if (matchPanel == null){
-            this.matchPanel = new MatchPanel();
+            this.matchPanel = new MatchPanel(this);
         }
+        applicationManager.addSubscriber(matchPanel);
         centerPanel.add(matchPanel, BorderLayout.CENTER);
         adjustCenterPanel(menuPanel);
         adjustBottomPanel();
     }
-    public void showResultPanel(){
+    public void showResultPanel(EventType eventType){
         removeCenterPanelContent();
         if (resultPanel == null){
-            this.resultPanel = new ResultPanel();
+            this.resultPanel = new ResultPanel(this, eventType);
         }
         centerPanel.add(resultPanel, BorderLayout.CENTER);
+        applicationManager.addSubscriber(resultPanel);
         adjustCenterPanel(resultPanel);
         adjustBottomPanel();
     }
+    public void showEditPanel(){
+
+    }
+    public void showRemovePanel(){
+
+    }
+
     private void removeCenterPanelContent(){
         if (centerPanel != null) {
             centerPanel.removeAll();
@@ -98,8 +116,9 @@ public class MainFrame extends JFrame implements Subscriber {
     }
     private void adjustBottomPanel(){
         if (bottomPanel == null){
-            this.bottomPanel = new ResultPanel();
+            this.bottomPanel = new JPanel();
         }
+        bottomPanel.removeAll();
         JButton backToMenu = new JButton("Return to main menu");
         backToMenu.setBackground(Colors.getButtonBackgroundColor());
         backToMenu.setForeground(Colors.getButtonTextColor());
@@ -110,32 +129,15 @@ public class MainFrame extends JFrame implements Subscriber {
                 showMenuPanel();
             }
         });
+        bottomPanel.add(backToMenu);
+        bottomPanel.setBackground(Colors.getBackgroundColor());
+        add(bottomPanel, BorderLayout.SOUTH);
+        bottomPanel.setOpaque(true);
         repaint();
         revalidate();
         pack();
     }
-
-    @Override
-    public void update(MenuOption option) {
-        switch (option){
-            case ADD_SEEKER -> {
-                showAdderPanel(AdderObject.SEEKER);
-            }
-            case ADD_OPENING -> {
-                showAdderPanel(AdderObject.OPENING);
-            }
-            case SEARCH -> {
-                showSearchPanel();
-            }
-            case MATCH -> {
-                showMatchPanel();
-            }
-            case EDIT -> {
-
-            }
-            case REMOVE -> {
-
-            }
-        }
+    public void update(EventType option, Object data) {
+        applicationManager.update(option, data);
     }
 }

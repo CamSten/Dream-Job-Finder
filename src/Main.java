@@ -1,7 +1,7 @@
-import GUI.MainFrame;
+import Controller.ApplicationManager;
 
 public class Main {
     public static void main(String[] args) {
-        MainFrame mainFrame = new MainFrame();
+        new ApplicationManager();
     }
 }

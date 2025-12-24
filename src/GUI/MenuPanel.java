@@ -1,7 +1,6 @@
 package GUI;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -9,17 +8,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MenuPanel extends JPanel implements Subscriber{
+    private MainFrame mainFrame;
     private List<JButton> allOptionButtons = new ArrayList<>();
-    private List<Subscriber> subscribers;
 
-    public MenuPanel(){
-        this.subscribers = new ArrayList<>();
+    public MenuPanel(MainFrame mainFrame){
+        this.mainFrame = mainFrame;
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBackground(Colors.getBackgroundColor());
 //        JLabel greeting = new JLabel("Welcome!");
 //        greeting.setFont(Fonts.getHeaderFont());
 //        greeting.setForeground(Colors.getHeaderColor());
 //        greeting.setHorizontalAlignment(SwingConstants.CENTER);
+        setMinimumSize(new Dimension(550, 500));
         JLabel prompt = new JLabel("Choose from the actions below:");
         prompt.setHorizontalAlignment(SwingConstants.CENTER);
         prompt.setFont(Fonts.getHeaderFont());
@@ -36,7 +36,7 @@ public class MenuPanel extends JPanel implements Subscriber{
         optionAddSeeker.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                update(MenuOption.ADD_SEEKER);
+                update(EventType.REQUEST_ADD_SEEKER, null);
             }
         });
         JButton optionAddOpening = new JButton("Add new job opening");
@@ -44,7 +44,7 @@ public class MenuPanel extends JPanel implements Subscriber{
         optionAddOpening.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                update(MenuOption.ADD_OPENING);
+                update(EventType.REQUEST_ADD_OPENING, null);
             }
         });
         JButton optionSearch = new JButton("Search database");
@@ -52,7 +52,7 @@ public class MenuPanel extends JPanel implements Subscriber{
         optionSearch.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                update(MenuOption.SEARCH);
+                update(EventType.REQUEST_SEARCH, null);
             }
         });
         JButton optionMatch = new JButton("Match");
@@ -60,7 +60,7 @@ public class MenuPanel extends JPanel implements Subscriber{
         optionMatch.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                update(MenuOption.MATCH);
+                update(EventType.REQUEST_MATCH, null);
             }
         });
         JButton optionEdit = new JButton("Edit");
@@ -68,7 +68,7 @@ public class MenuPanel extends JPanel implements Subscriber{
         optionEdit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                update(MenuOption.EDIT);
+                update(EventType.REQUEST_EDIT, null);
             }
         });
         JButton optionRemove = new JButton("Remove");
@@ -76,14 +76,14 @@ public class MenuPanel extends JPanel implements Subscriber{
         optionRemove.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                update(MenuOption.REMOVE);
+                update(EventType.REQUEST_REMOVE, null);
             }
         });
         JPanel menuButtons = new JPanel();
         menuButtons.setBackground(Colors.getButtonBackgroundColor());
         menuButtons.setOpaque(true);
         menuButtons.setLayout(new BoxLayout(menuButtons, BoxLayout.Y_AXIS));
-        menuButtons.setPreferredSize(new Dimension(250, allOptionButtons.size() * 60)); // 200px knappbredd + 20px padding
+        menuButtons.setPreferredSize(new Dimension(250, allOptionButtons.size() * 60));
         menuButtons.setMaximumSize(new Dimension(250, Integer.MAX_VALUE));
         menuButtons.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -97,21 +97,15 @@ public class MenuPanel extends JPanel implements Subscriber{
             button.add(Box.createHorizontalStrut(200));
             button.setAlignmentX(Component.CENTER_ALIGNMENT);
             button.setBorder(BorderFactory.createLineBorder(Colors.getBorderColor(), 5, true));
-//            button.setBorder(
-//                    BorderFactory.createCompoundBorder(
-//                            BorderFactory.createLineBorder(Colors.getBackgroundColor(), 5),
-//                            BorderFactory.createEmptyBorder(8, 16, 8, 16)
-//                    )
-//            );
+//
             menuButtons.add(Box.createVerticalStrut(5));
             menuButtons.add(button);
             menuButtons.add(Box.createVerticalStrut(5));
             menuButtons.setBorder(BorderFactory.createLineBorder(Colors.getButtonBackgroundColor(), 10, true));
         }
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setBackground(Colors.getButtonTextColor());
+        buttonPanel.setBackground(Colors.getBackgroundColor());
         buttonPanel.setOpaque(true);
-        buttonPanel.setBorder(BorderFactory.createLineBorder(Colors.getButtonTextColor(), 1, true));
         buttonPanel.setPreferredSize(menuButtons.getPreferredSize());
         buttonPanel.setMaximumSize(menuButtons.getMaximumSize());
         buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
@@ -123,12 +117,7 @@ public class MenuPanel extends JPanel implements Subscriber{
         revalidate();
     }
     @Override
-    public void update(MenuOption option) {
-        for (Subscriber s : subscribers) {
-            s.update(option);
-        }
-    }
-    public  void addSubscriber(Subscriber s){
-        subscribers.add(s);
+    public void update(EventType option, Object data )  {
+        mainFrame.update(option, data);
     }
 }
