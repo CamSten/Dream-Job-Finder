@@ -61,6 +61,17 @@ public class FileJobOpeningRepository implements JobOpeningRepository {
         return openings;
     }
 
+    // removes valid job opening by id
+    @Override
+    public void delete(UUID id) {
+        List<JobOpening> allOpenings = findAll();
+        boolean removed = allOpenings.removeIf(jo -> jo.getId().equals(id));
+        
+        if (removed) {
+            writeToFile(allOpenings);
+        }
+    }
+
     // helper to save the whole list back to the file
     private void writeToFile(List<JobOpening> openings) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {

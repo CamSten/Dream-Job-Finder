@@ -11,4 +11,6 @@ public interface JobOpeningRepository {
     Optional<JobOpening> findById(UUID id);
 
     List<JobOpening> findAll();
+
+    void delete(UUID id);
 }
