@@ -66,8 +66,6 @@ public class JobOpening {
                 '}';
     }
 
-    // --- Helper methods for Text File Storage ---
-
     public String toDataString() {
         return id + ";" + title + ";" + requiredEducation + ";" + minYearsExperience + ";" + workArea;
     }
