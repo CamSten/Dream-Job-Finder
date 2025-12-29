@@ -25,6 +25,10 @@ public class MatchResult {
         return score;
     }
 
+    public void setScore(int score) {
+        this.score = score;
+    }
+
     // helpful to know why we got this score
     public void addReason(String reason) {
         if (reason != null && !reason.isBlank()) {
