@@ -1,13 +1,19 @@
 package model;
 
+import java.io.Serializable;
 import java.util.UUID;
 
-public class JobOpening {
+public class JobOpening implements Serializable {
     private final UUID id;
     private String title;
     private EducationLevel requiredEducation;
     private int minYearsExperience;
     private String workArea;
+
+    // empty constructor for compatibility
+    public JobOpening() {
+        this.id = UUID.randomUUID();
+    }
 
     public JobOpening(String title, EducationLevel requiredEducation, int minYearsExperience, String workArea) {
         this.id = UUID.randomUUID();
