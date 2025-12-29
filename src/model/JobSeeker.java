@@ -66,10 +66,12 @@ public class JobSeeker {
                 '}';
     }
 
+    // converts to string so we can save to text file
     public String toDataString() {
         return id + ";" + fullName + ";" + education + ";" + yearsOfExperience + ";" + workArea;
     }
 
+    // reads from text file line and creates object
     public static JobSeeker fromDataString(String line) {
         String[] parts = line.split(";");
         UUID id = UUID.fromString(parts[0]);

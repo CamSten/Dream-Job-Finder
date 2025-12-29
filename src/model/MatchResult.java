@@ -25,12 +25,14 @@ public class MatchResult {
         return score;
     }
 
+    // helpful to know why we got this score
     public void addReason(String reason) {
         if (reason != null && !reason.isBlank()) {
             reasons.add(reason);
         }
     }
 
+    // keeps track of skills that matched
     public void addMatchedSkill(String skill) {
         if (skill != null && !skill.isBlank()) {
             matchedSkills.add(skill);
