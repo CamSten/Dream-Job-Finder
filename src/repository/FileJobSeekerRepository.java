@@ -62,6 +62,18 @@ public class FileJobSeekerRepository implements JobSeekerRepository {
         return seekers;
     }
 
+    // removes valid job seeker by id
+    @Override
+    public void delete(UUID id) {
+        List<JobSeeker> allSeekers = findAll();
+        // removeIf returns true if something was removed
+        boolean removed = allSeekers.removeIf(js -> js.getId().equals(id));
+
+        if (removed) {
+            writeToFile(allSeekers);
+        }
+    }
+
     // helper to save the whole list back to the file
     private void writeToFile(List<JobSeeker> seekers) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {

@@ -11,4 +11,6 @@ public interface JobSeekerRepository {
     Optional<JobSeeker> findById(UUID id);
 
     List<JobSeeker> findAll();
+
+    void delete(UUID id);
 }
