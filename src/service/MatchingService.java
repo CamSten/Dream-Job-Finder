@@ -52,4 +52,33 @@ public class MatchingService {
 
         return results;
     }
+
+    // Matches a candidate to all job openings
+    public List<MatchResult> matchJobsToCandidate(UUID jobSeekerId, StrategyType strategyType) {
+        // 1. Get the job seeker
+        JobSeeker seeker = seekerRepo.findById(jobSeekerId).orElse(null);
+        if (seeker == null) {
+            System.err.println("Job Seeker not found: " + jobSeekerId);
+            return new ArrayList<>();
+        }
+
+        // 2. Get all job openings
+        List<JobOpening> openings = openingRepo.findAll();
+        List<MatchResult> results = new ArrayList<>();
+
+        // 3. Get the strategy
+        MatchingStrategy strategy = MatchingStrategyFactory.getStrategy(strategyType);
+
+        // 4. Run matching loop
+        for (JobOpening opening : openings) {
+            // Note: Strategy match expects (seeker, opening) order
+            MatchResult result = strategy.match(seeker, opening);
+            results.add(result);
+        }
+
+        // 5. Sort by score (highest first)
+        results.sort(Comparator.comparingInt(MatchResult::getScore).reversed());
+
+        return results;
+    }
 }
