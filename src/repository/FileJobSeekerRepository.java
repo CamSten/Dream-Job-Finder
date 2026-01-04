@@ -62,6 +62,26 @@ public class FileJobSeekerRepository implements JobSeekerRepository {
         return seekers;
     }
 
+    // updates the job seeker
+    @Override
+    public void update(JobSeeker jobSeeker) {
+        save(jobSeeker);
+    }
+
+    // filters list by name
+    @Override
+    public List<JobSeeker> findByName(String name) {
+        List<JobSeeker> all = findAll();
+        List<JobSeeker> found = new ArrayList<>();
+
+        for (JobSeeker js : all) {
+            if (js.getFullName().toLowerCase().contains(name.toLowerCase())) {
+                found.add(js);
+            }
+        }
+        return found;
+    }
+
     // removes valid job seeker by id
     @Override
     public void delete(UUID id) {

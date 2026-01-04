@@ -12,5 +12,9 @@ public interface JobSeekerRepository {
 
     List<JobSeeker> findAll();
 
+    void update(JobSeeker jobSeeker);
+
+    List<JobSeeker> findByName(String name);
+
     void delete(UUID id);
 }
