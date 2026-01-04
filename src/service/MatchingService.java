@@ -40,6 +40,18 @@ public class MatchingService {
         openingRepo.save(opening);
     }
 
+    public List<JobSeeker> findSeekersByName(String name) {
+        return seekerRepo.findByName(name);
+    }
+
+    public void updateSeeker(JobSeeker seeker) {
+        seekerRepo.update(seeker);
+    }
+
+    public void deleteSeeker(UUID id) {
+        seekerRepo.delete(id);
+    }
+
     public MatchingService(JobSeekerRepository seekerRepo, JobOpeningRepository openingRepo) {
         this.seekerRepo = seekerRepo;
         this.openingRepo = openingRepo;

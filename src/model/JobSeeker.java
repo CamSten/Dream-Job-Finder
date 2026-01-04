@@ -89,7 +89,7 @@ public class JobSeeker implements Serializable {
         return new JobSeeker(id, name, edu, years, area);
     }
 
-    private JobSeeker(UUID id, String fullName, EducationLevel education, int yearsOfExperience, String workArea) {
+    public JobSeeker(UUID id, String fullName, EducationLevel education, int yearsOfExperience, String workArea) {
         this.id = id;
         this.fullName = fullName;
         this.education = education;
