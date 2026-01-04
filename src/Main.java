@@ -16,8 +16,8 @@ public class Main {
         System.out.println("=== Dream Job Finder Work ===");
 
         // create the repositories to save to our files
-        JobSeekerRepository seekerRepo = new FileJobSeekerRepository();
-        JobOpeningRepository openingRepo = new FileJobOpeningRepository();
+        JobSeekerRepository seekerRepo = new FileJobSeekerRepository("jobSeekers.txt");
+        JobOpeningRepository openingRepo = new FileJobOpeningRepository("jobOpenings.txt");
 
         // create the service that handles the logic
         MatchingService matchingService = new MatchingService(seekerRepo, openingRepo);
@@ -50,6 +50,15 @@ public class Main {
                 StrategyType.FLEXIBLE);
 
         for (MatchResult result : flexibleResults) {
+            System.out.println("Score: " + result.getScore() + " for " + result.getJobSeeker().getFullName());
+        }
+
+        // test education focused matching
+        System.out.println("\n--- Testing Education Focused Strategy ---");
+        List<MatchResult> eduResults = matchingService.matchCandidatesToJob(seniorDev.getId(),
+                StrategyType.EDUCATION_FOCUSED);
+
+        for (MatchResult result : eduResults) {
             System.out.println("Score: " + result.getScore() + " for " + result.getJobSeeker().getFullName());
         }
 
