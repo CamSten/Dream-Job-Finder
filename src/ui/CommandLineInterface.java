@@ -2,6 +2,7 @@ package ui;
 
 import service.MatchingService;
 import model.JobSeeker;
+import model.JobOpening;
 import model.EducationLevel;
 
 import java.util.Scanner;
@@ -30,8 +31,7 @@ public class CommandLineInterface {
                     handleSeekers();
                     break;
                 case 2:
-                    // TODO: handle jobs
-                    System.out.println("Manage Job Openings (Coming Soon)");
+                    handleJobs();
                     break;
                 case 3:
                     // TODO: handle matching
@@ -193,6 +193,145 @@ public class CommandLineInterface {
             UUID id = UUID.fromString(idStr);
             matchingService.deleteSeeker(id);
             System.out.println("Seeker deleted (if ID existed).");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid ID format.");
+        }
+    }
+
+    // --- Job Opening Management ---
+    private void handleJobs() {
+        boolean back = false;
+        while (!back) {
+            System.out.println("\n--- Manage Job Openings ---");
+            System.out.println("1. List All Jobs");
+            System.out.println("2. Add new Job");
+            System.out.println("3. Find Job by Title");
+            System.out.println("4. Update Job");
+            System.out.println("5. Delete Job");
+            System.out.println("6. Back to Main Menu");
+            System.out.print("Enter choice: ");
+
+            int choice = readIntInput();
+            switch (choice) {
+                case 1:
+                    listJobs();
+                    break;
+                case 2:
+                    addJob();
+                    break;
+                case 3:
+                    findJob();
+                    break;
+                case 4:
+                    updateJob();
+                    break;
+                case 5:
+                    deleteJob();
+                    break;
+                case 6:
+                    back = true;
+                    break;
+                default:
+                    System.out.println("Invalid option.");
+            }
+        }
+    }
+
+    private void listJobs() {
+        System.out.println("\n--- List of Job Openings ---");
+        List<JobOpening> jobs = matchingService.getAllJobOpenings();
+        if (jobs.isEmpty()) {
+            System.out.println("No job openings found.");
+        } else {
+            for (JobOpening job : jobs) {
+                System.out.println(job);
+            }
+        }
+    }
+
+    private void addJob() {
+        System.out.println("\n--- Add New Job Opening ---");
+        System.out.print("Enter Job Title: ");
+        String title = scanner.nextLine();
+
+        System.out.println("Select Required Education Level:");
+        for (EducationLevel level : EducationLevel.values()) {
+            System.out.println(level.ordinal() + ". " + level);
+        }
+        System.out.print("Choice: ");
+        int eduChoice = readIntInput();
+        EducationLevel eduLevel = EducationLevel.NONE;
+        if (eduChoice >= 0 && eduChoice < EducationLevel.values().length) {
+            eduLevel = EducationLevel.values()[eduChoice];
+        }
+
+        System.out.print("Minimum Years of Experience: ");
+        int experience = readIntInput();
+
+        System.out.print("Enter Work Area / Skills: ");
+        String workArea = scanner.nextLine();
+
+        JobOpening newJob = new JobOpening(title, eduLevel, experience, workArea);
+        matchingService.addJobOpening(newJob);
+        System.out.println("Job Opening added successfully!");
+    }
+
+    private void findJob() {
+        System.out.println("\n--- Find Job by Title ---");
+        System.out.print("Enter Title Payload: ");
+        String title = scanner.nextLine();
+        List<JobOpening> results = matchingService.findJobOpeningsByTitle(title);
+        if (results.isEmpty()) {
+            System.out.println("No jobs found.");
+        } else {
+            for (JobOpening job : results) {
+                System.out.println(job);
+            }
+        }
+    }
+
+    private void updateJob() {
+        System.out.println("\n--- Update Job Opening ---");
+        System.out.print("Enter ID of job to update: ");
+        String idStr = scanner.nextLine();
+        try {
+            UUID id = UUID.fromString(idStr);
+            System.out.print("Enter New Job Title: ");
+            String title = scanner.nextLine();
+
+            System.out.println("Select New Education Level:");
+            for (EducationLevel level : EducationLevel.values()) {
+                System.out.println(level.ordinal() + ". " + level);
+            }
+            System.out.print("Choice: ");
+            int eduChoice = readIntInput();
+            EducationLevel eduLevel = EducationLevel.NONE;
+            if (eduChoice >= 0 && eduChoice < EducationLevel.values().length) {
+                eduLevel = EducationLevel.values()[eduChoice];
+            }
+
+            System.out.print("New Minimum Years of Experience: ");
+            int experience = readIntInput();
+
+            System.out.print("New Work Area / Skills: ");
+            String workArea = scanner.nextLine();
+
+            JobOpening updatedJob = new JobOpening(id, title, eduLevel, experience, workArea);
+            matchingService.updateJobOpening(updatedJob);
+            System.out.println("Job Opening updated!");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid ID format.");
+        }
+    }
+
+    private void deleteJob() {
+        System.out.println("\n--- Delete Job Opening ---");
+        System.out.print("Enter ID of job to delete: ");
+        String idStr = scanner.nextLine();
+        try {
+            UUID id = UUID.fromString(idStr);
+            matchingService.deleteJobOpening(id);
+            System.out.println("Job Opening deleted (if ID existed).");
         } catch (IllegalArgumentException e) {
             System.out.println("Invalid ID format.");
         }
