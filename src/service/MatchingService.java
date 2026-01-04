@@ -9,6 +9,9 @@ import strategy.MatchingStrategy;
 import strategy.MatchingStrategyFactory;
 import strategy.StrategyType;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -80,5 +83,21 @@ public class MatchingService {
         results.sort(Comparator.comparingInt(MatchResult::getScore).reversed());
 
         return results;
+    }
+
+    // saves the match results to a file for reporting
+    public void saveMatchReport(List<MatchResult> results, String filename) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(filename))) {
+            writer.println("=== MATCH REPORT ===");
+            for (MatchResult result : results) {
+                writer.println("Candidate: " + result.getJobSeeker().getFullName());
+                writer.println("Job: " + result.getJobOpening().getTitle());
+                writer.println("Score: " + result.getScore());
+                writer.println("-------------------------");
+            }
+            System.out.println("Report saved to " + filename);
+        } catch (IOException e) {
+            System.err.println("Error saving report: " + e.getMessage());
+        }
     }
 }
