@@ -4,6 +4,8 @@ import service.MatchingService;
 import model.JobSeeker;
 import model.JobOpening;
 import model.EducationLevel;
+import model.MatchResult;
+import strategy.StrategyType;
 
 import java.util.Scanner;
 import java.util.List;
@@ -34,8 +36,7 @@ public class CommandLineInterface {
                     handleJobs();
                     break;
                 case 3:
-                    // TODO: handle matching
-                    System.out.println("Match Jobs (Coming Soon)");
+                    handleMatching();
                     break;
                 case 4:
                     running = false;
@@ -334,6 +335,110 @@ public class CommandLineInterface {
             System.out.println("Job Opening deleted (if ID existed).");
         } catch (IllegalArgumentException e) {
             System.out.println("Invalid ID format.");
+        }
+    }
+
+    // --- Matching Management ---
+    private void handleMatching() {
+        boolean back = false;
+        while (!back) {
+            System.out.println("\n--- Match Jobs ---");
+            System.out.println("1. Match Recommendations for a Seeker");
+            System.out.println("2. Find Candidates for a Job");
+            System.out.println("3. Back to Main Menu");
+            System.out.print("Enter choice: ");
+
+            int choice = readIntInput();
+            switch (choice) {
+                case 1:
+                    matchForSeeker();
+                    break;
+                case 2:
+                    matchForJob();
+                    break;
+                case 3:
+                    back = true;
+                    break;
+                default:
+                    System.out.println("Invalid option.");
+            }
+        }
+    }
+
+    private void matchForSeeker() {
+        System.out.println("\n--- Match Recommendations for Seeker ---");
+        System.out.print("Enter Seeker ID: ");
+        String idStr = scanner.nextLine();
+        try {
+            UUID seekerId = UUID.fromString(idStr);
+            StrategyType strategy = selectStrategy();
+
+            List<MatchResult> results = matchingService.matchJobsToCandidate(seekerId, strategy);
+            displayResults(results);
+            saveReportPrompt(results);
+
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid ID format.");
+        }
+    }
+
+    private void matchForJob() {
+        System.out.println("\n--- Find Candidates for Job ---");
+        System.out.print("Enter Job Opening ID: ");
+        String idStr = scanner.nextLine();
+        try {
+            UUID jobId = UUID.fromString(idStr);
+            StrategyType strategy = selectStrategy();
+
+            List<MatchResult> results = matchingService.matchCandidatesToJob(jobId, strategy);
+            displayResults(results);
+            saveReportPrompt(results);
+
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid ID format.");
+        }
+    }
+
+    private StrategyType selectStrategy() {
+        System.out.println("Select Matching Strategy:");
+        System.out.println("1. Standard (Strict)");
+        System.out.println("2. Flexible (Fuzzy)");
+        System.out.println("3. Education Focused");
+        System.out.print("Choice: ");
+        int choice = readIntInput();
+        switch (choice) {
+            case 2:
+                return StrategyType.FLEXIBLE;
+            case 3:
+                return StrategyType.EDUCATION_FOCUSED;
+            default:
+                return StrategyType.STRICT;
+        }
+    }
+
+    private void displayResults(List<MatchResult> results) {
+        if (results.isEmpty()) {
+            System.out.println("No matches found.");
+        } else {
+            System.out.println("\n--- Match Results ---");
+            for (MatchResult result : results) {
+                System.out.println("Score: " + result.getScore() + " | " +
+                        result.getJobSeeker().getFullName() + " <-> " +
+                        result.getJobOpening().getTitle());
+            }
+        }
+    }
+
+    private void saveReportPrompt(List<MatchResult> results) {
+        if (results.isEmpty())
+            return;
+
+        System.out.print("Save report to file? (y/n): ");
+        String ans = scanner.nextLine();
+        if (ans.equalsIgnoreCase("y")) {
+            System.out.print("Enter filename (e.g., report.txt): ");
+            String filename = scanner.nextLine();
+            matchingService.saveMatchReport(results, filename);
         }
     }
 
