@@ -1,43 +1,47 @@
 package model;
 
 import java.io.Serializable;
-import java.util.UUID;
 
 public class JobSeeker implements Serializable {
-    private final UUID id;
-    private String fullName;
-    private EducationLevel education;
-    private int yearsOfExperience;
+    private final String id;
+    private String name;
+    private EducationLevel educationLevel;
+    private int yearsExperience;
     private String workArea;
 
     // empty constructor for compatibility
     public JobSeeker() {
-        this.id = UUID.randomUUID();
+        this.id = generateId();
     }
 
-    public JobSeeker(String fullName, EducationLevel education, int yearsOfExperience, String workArea) {
-        this.id = UUID.randomUUID();
-        this.fullName = fullName;
-        this.education = education;
-        this.yearsOfExperience = yearsOfExperience;
+    public JobSeeker(String name, EducationLevel educationLevel, int yearsExperience, String workArea) {
+        this.id = generateId();
+        this.name = name;
+        this.educationLevel = educationLevel;
+        this.yearsExperience = yearsExperience;
         this.workArea = workArea;
-
     }
 
-    public UUID getId() {
+    private String generateId() {
+        // Generates a random 4-digit ID between 1000 and 9999
+        int num = (int) (Math.random() * 9000) + 1000;
+        return String.valueOf(num);
+    }
+
+    public String getId() {
         return id;
     }
 
     public String getFullName() {
-        return fullName;
+        return name;
     }
 
-    public EducationLevel getEducation() {
-        return education;
+    public EducationLevel getEducationLevel() {
+        return educationLevel;
     }
 
-    public int getYearsOfExperience() {
-        return yearsOfExperience;
+    public int getYearsExperience() {
+        return yearsExperience;
     }
 
     public String getWorkArea() {
@@ -64,23 +68,23 @@ public class JobSeeker implements Serializable {
     @Override
     public String toString() {
         return "JobSeeker{" +
-                "id=" + id +
-                ", fullName='" + fullName + '\'' +
-                ", education=" + education +
-                ", yearsOfExperience=" + yearsOfExperience +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", educationLevel=" + educationLevel +
+                ", yearsExperience=" + yearsExperience +
                 ", workArea='" + workArea + '\'' +
                 '}';
     }
 
     // converts to string so we can save to text file
     public String toDataString() {
-        return id + ";" + fullName + ";" + education + ";" + yearsOfExperience + ";" + workArea;
+        return id + ";" + name + ";" + educationLevel + ";" + yearsExperience + ";" + workArea;
     }
 
     // reads from text file line and creates object
     public static JobSeeker fromDataString(String line) {
         String[] parts = line.split(";");
-        UUID id = UUID.fromString(parts[0]);
+        String id = parts[0];
         String name = parts[1];
         EducationLevel edu = EducationLevel.valueOf(parts[2]);
         int years = Integer.parseInt(parts[3]);
@@ -89,11 +93,11 @@ public class JobSeeker implements Serializable {
         return new JobSeeker(id, name, edu, years, area);
     }
 
-    public JobSeeker(UUID id, String fullName, EducationLevel education, int yearsOfExperience, String workArea) {
+    public JobSeeker(String id, String name, EducationLevel educationLevel, int yearsExperience, String workArea) {
         this.id = id;
-        this.fullName = fullName;
-        this.education = education;
-        this.yearsOfExperience = yearsOfExperience;
+        this.name = name;
+        this.educationLevel = educationLevel;
+        this.yearsExperience = yearsExperience;
         this.workArea = workArea;
     }
 }

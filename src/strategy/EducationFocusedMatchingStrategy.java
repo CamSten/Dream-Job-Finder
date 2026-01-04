@@ -12,26 +12,33 @@ public class EducationFocusedMatchingStrategy implements MatchingStrategy {
         MatchResult result = new MatchResult(jobSeeker, jobOpening);
         int score = 0;
 
-        // 1. Education is heavily weighted (50% of score)
-        if (jobSeeker.getEducation().compareTo(jobOpening.getRequiredEducation()) >= 0) {
+        // 1. Education (50 points) - Heavily weighted
+        // Must match or exceed required education
+        if (jobSeeker.getEducationLevel().compareTo(jobOpening.getRequiredEducation()) >= 0) {
             score += 50;
-            result.addMatchedSkill("Education (High Importance): " + jobSeeker.getEducation());
+            result.addMatchedSkill("Education: " + jobSeeker.getEducationLevel());
         } else {
-            result.addReason("Education too low for this focused strategy");
+            result.addReason("Education too low: " + jobSeeker.getEducationLevel());
+            // In this strategy, if education fails, we penalize heavily, effectively
+            // disqualifying them
+            score = 0;
+            result.setScore(0);
+            return result;
         }
 
-        // 2. Work Area (25%)
+        // 2. Work Area (30 points)
         if (jobSeeker.getWorkArea().equalsIgnoreCase(jobOpening.getWorkArea())) {
-            score += 25;
+            score += 30;
             result.addMatchedSkill("Work Area: " + jobSeeker.getWorkArea());
         }
 
-        // 3. Experience (25%)
-        if (jobSeeker.getYearsOfExperience() >= jobOpening.getMinYearsExperience()) {
-            score += 25;
-            result.addMatchedSkill("Experience: " + jobSeeker.getYearsOfExperience());
+        // 3. Experience (20 points)
+        if (jobSeeker.getYearsExperience() >= jobOpening.getMinYearsExperience()) {
+            score += 20;
+            result.addMatchedSkill("Experience: " + jobSeeker.getYearsExperience() + " years");
+        } else {
+            result.addReason("Experience too low");
         }
-
         result.setScore(score);
         return result;
     }

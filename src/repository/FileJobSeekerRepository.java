@@ -2,12 +2,15 @@ package repository;
 
 import model.JobSeeker;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public class FileJobSeekerRepository implements JobSeekerRepository {
     private final String filePath;
@@ -31,17 +34,34 @@ public class FileJobSeekerRepository implements JobSeekerRepository {
 
     @Override
     public void save(JobSeeker jobSeeker) {
-        List<JobSeeker> allSeekers = findAll();
         // Remove existing if updating (based on ID)
-        allSeekers.removeIf(js -> js.getId().equals(jobSeeker.getId()));
-        allSeekers.add(jobSeeker);
-        writeToFile(allSeekers);
+        // Since we are appending, we need to check if exists logic or just append
+        // For simplicity in this dummy version:
+        // 1. Read all
+        // 2. If ID exists, replace (update)
+        // 3. Else append
+        // BUT here we just append to file for now or overwrite all.
+        // Let's implement full rewrite for simplicity to handle updates correctly.
+
+        List<JobSeeker> all = findAll();
+        boolean exists = false;
+        for (int i = 0; i < all.size(); i++) {
+            if (all.get(i).getId().equals(jobSeeker.getId())) {
+                all.set(i, jobSeeker);
+                exists = true;
+                break;
+            }
+        }
+        if (!exists) {
+            all.add(jobSeeker);
+        }
+        writeAll(all);
     }
 
     @Override
-    public Optional<JobSeeker> findById(UUID id) {
+    public Optional<JobSeeker> findById(String id) {
         return findAll().stream()
-                .filter(js -> js.getId().equals(id))
+                .filter(seeker -> seeker.getId().equals(id))
                 .findFirst();
     }
 
@@ -49,15 +69,15 @@ public class FileJobSeekerRepository implements JobSeekerRepository {
     @Override
     public List<JobSeeker> findAll() {
         List<JobSeeker> seekers = new ArrayList<>();
-        try {
-            List<String> lines = Files.readAllLines(Paths.get(filePath));
-            for (String line : lines) {
-                if (!line.isBlank()) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.trim().isEmpty()) {
                     seekers.add(JobSeeker.fromDataString(line));
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Could not read file: " + e.getMessage());
         }
         return seekers;
     }
@@ -84,24 +104,25 @@ public class FileJobSeekerRepository implements JobSeekerRepository {
 
     // removes valid job seeker by id
     @Override
-    public void delete(UUID id) {
-        List<JobSeeker> allSeekers = findAll();
-        // removeIf returns true if something was removed
-        boolean removed = allSeekers.removeIf(js -> js.getId().equals(id));
-
+    public void delete(String id) {
+        List<JobSeeker> all = findAll();
+        boolean removed = all.removeIf(seeker -> seeker.getId().equals(id));
         if (removed) {
-            writeToFile(allSeekers);
+            writeAll(all);
+            System.out.println("Deleted seeker with ID: " + id);
+        } else {
+            System.out.println("ID not found: " + id);
         }
     }
 
     // helper to save the whole list back to the file
-    private void writeToFile(List<JobSeeker> seekers) {
+    private void writeAll(List<JobSeeker> seekers) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
             for (JobSeeker seeker : seekers) {
                 writer.println(seeker.toDataString());
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Could not write file: " + e.getMessage());
         }
     }
 }

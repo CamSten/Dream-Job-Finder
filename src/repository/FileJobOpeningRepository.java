@@ -3,9 +3,9 @@ package repository;
 import model.JobOpening;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public class FileJobOpeningRepository implements JobOpeningRepository {
     private final String filePath;
@@ -30,35 +30,43 @@ public class FileJobOpeningRepository implements JobOpeningRepository {
     // saves the job opening to the list and then to file
     @Override
     public void save(JobOpening jobOpening) {
-        List<JobOpening> allOpenings = findAll();
-        // Remove existing if updating (based on ID)
-        allOpenings.removeIf(jo -> jo.getId().equals(jobOpening.getId()));
-        allOpenings.add(jobOpening);
-        writeToFile(allOpenings);
+        List<JobOpening> all = findAll();
+        boolean exists = false;
+        for (int i = 0; i < all.size(); i++) {
+            if (all.get(i).getId().equals(jobOpening.getId())) {
+                all.set(i, jobOpening);
+                exists = true;
+                break;
+            }
+        }
+        if (!exists) {
+            all.add(jobOpening);
+        }
+        writeAll(all);
     }
 
     @Override
-    public Optional<JobOpening> findById(UUID id) {
+    public Optional<JobOpening> findById(String id) {
         return findAll().stream()
-                .filter(jo -> jo.getId().equals(id))
+                .filter(job -> job.getId().equals(id))
                 .findFirst();
     }
 
     // reads everything from the file and returns a list
     @Override
     public List<JobOpening> findAll() {
-        List<JobOpening> openings = new ArrayList<>();
-        try {
-            List<String> lines = Files.readAllLines(Paths.get(filePath));
-            for (String line : lines) {
-                if (!line.isBlank()) {
-                    openings.add(JobOpening.fromDataString(line));
+        List<JobOpening> jobs = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.trim().isEmpty()) {
+                    jobs.add(JobOpening.fromDataString(line));
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Could not read file: " + e.getMessage());
         }
-        return openings;
+        return jobs;
     }
 
     // updates the job opening
@@ -73,9 +81,9 @@ public class FileJobOpeningRepository implements JobOpeningRepository {
         List<JobOpening> all = findAll();
         List<JobOpening> found = new ArrayList<>();
 
-        for (JobOpening jo : all) {
-            if (jo.getTitle().toLowerCase().contains(title.toLowerCase())) {
-                found.add(jo);
+        for (JobOpening j : all) {
+            if (j.getTitle().toLowerCase().contains(title.toLowerCase())) {
+                found.add(j);
             }
         }
         return found;
@@ -83,23 +91,25 @@ public class FileJobOpeningRepository implements JobOpeningRepository {
 
     // removes valid job opening by id
     @Override
-    public void delete(UUID id) {
-        List<JobOpening> allOpenings = findAll();
-        boolean removed = allOpenings.removeIf(jo -> jo.getId().equals(id));
-
+    public void delete(String id) {
+        List<JobOpening> all = findAll();
+        boolean removed = all.removeIf(job -> job.getId().equals(id));
         if (removed) {
-            writeToFile(allOpenings);
+            writeAll(all);
+            System.out.println("Deleted job with ID: " + id);
+        } else {
+            System.out.println("ID not found: " + id);
         }
     }
 
     // helper to save the whole list back to the file
-    private void writeToFile(List<JobOpening> openings) {
+    private void writeAll(List<JobOpening> jobs) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
-            for (JobOpening opening : openings) {
-                writer.println(opening.toDataString());
+            for (JobOpening job : jobs) {
+                writer.println(job.toDataString());
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Could not write file: " + e.getMessage());
         }
     }
 }

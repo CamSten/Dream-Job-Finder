@@ -13,10 +13,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.UUID;
 
 public class MatchingService {
 
@@ -48,7 +46,7 @@ public class MatchingService {
         seekerRepo.update(seeker);
     }
 
-    public void deleteSeeker(UUID id) {
+    public void deleteSeeker(String id) {
         seekerRepo.delete(id);
     }
 
@@ -60,7 +58,7 @@ public class MatchingService {
         openingRepo.update(opening);
     }
 
-    public void deleteJobOpening(UUID id) {
+    public void deleteJobOpening(String id) {
         openingRepo.delete(id);
     }
 
@@ -70,7 +68,7 @@ public class MatchingService {
     }
 
     // Matches all candidates to a specific job opening
-    public List<MatchResult> matchCandidatesToJob(UUID jobOpeningId, StrategyType strategyType) {
+    public List<MatchResult> matchCandidatesToJob(String jobOpeningId, StrategyType strategyType) {
         // 1. Get the job opening
         JobOpening job = openingRepo.findById(jobOpeningId).orElse(null);
         if (job == null) {
@@ -98,7 +96,7 @@ public class MatchingService {
     }
 
     // Matches a candidate to all job openings
-    public List<MatchResult> matchJobsToCandidate(UUID jobSeekerId, StrategyType strategyType) {
+    public List<MatchResult> matchJobsToCandidate(String jobSeekerId, StrategyType strategyType) {
         // 1. Get the job seeker
         JobSeeker seeker = seekerRepo.findById(jobSeekerId).orElse(null);
         if (seeker == null) {

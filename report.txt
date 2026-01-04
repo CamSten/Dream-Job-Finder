@@ -1,0 +1,9 @@
+=== MATCH REPORT ===
+Candidate: Stoil Steve Zhelyazkov
+Job: Senior Java Dev
+Score: 60
+-------------------------
+Candidate: Stoil Steve Zhelyazkov
+Job: Senior Java Dev
+Score: 60
+-------------------------

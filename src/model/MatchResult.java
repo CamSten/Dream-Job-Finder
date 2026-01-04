@@ -21,6 +21,14 @@ public class MatchResult {
         this.matchedSkills = new HashSet<>();
     }
 
+    public JobSeeker getJobSeeker() {
+        return jobSeeker;
+    }
+
+    public JobOpening getJobOpening() {
+        return jobOpening;
+    }
+
     public int getScore() {
         return score;
     }

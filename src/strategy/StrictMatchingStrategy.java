@@ -14,11 +14,11 @@ public class StrictMatchingStrategy implements MatchingStrategy {
 
         // 1. check education (must be equal or higher)
         // enums have natural order: 0=NONE, 1=HIGH_SCHOOL...
-        if (jobSeeker.getEducation().compareTo(jobOpening.getRequiredEducation()) >= 0) {
+        if (jobSeeker.getEducationLevel().compareTo(jobOpening.getRequiredEducation()) >= 0) {
             score += 33;
-            result.addMatchedSkill("Education: " + jobSeeker.getEducation());
+            result.addMatchedSkill("Education: " + jobSeeker.getEducationLevel());
         } else {
-            result.addReason("Education too low: " + jobSeeker.getEducation());
+            result.addReason("Education too low: " + jobSeeker.getEducationLevel());
         }
 
         // 2. check work area (must match exactly)
@@ -30,9 +30,9 @@ public class StrictMatchingStrategy implements MatchingStrategy {
         }
 
         // 3. check experience (years >= required)
-        if (jobSeeker.getYearsOfExperience() >= jobOpening.getMinYearsExperience()) {
+        if (jobSeeker.getYearsExperience() >= jobOpening.getMinYearsExperience()) {
             score += 34; // makes 100 total
-            result.addMatchedSkill("Experience: " + jobSeeker.getYearsOfExperience() + " years");
+            result.addMatchedSkill("Experience: " + jobSeeker.getYearsExperience() + " years");
         } else {
             result.addReason("Not enough experience");
         }

@@ -12,43 +12,38 @@ public class FlexibleMatchingStrategy implements MatchingStrategy {
         MatchResult result = new MatchResult(jobSeeker, jobOpening);
         int score = 0;
 
-        // 1. check education (if higher +10 bonus, if slightly lower still get some
-        // points)
-        int eduDiff = jobSeeker.getEducation().compareTo(jobOpening.getRequiredEducation());
-        if (eduDiff >= 0) {
-            score += 30;
-            if (eduDiff > 0) {
-                score += 10; // bonus for higher education
-                result.addReason("Bonus: Higher education than required!");
-            }
-            result.addMatchedSkill("Education: " + jobSeeker.getEducation());
-        } else if (eduDiff == -1) {
-            // 1 step lower is okay in flexible mode, get partial points
-            score += 15;
-            result.addMatchedSkill("Education close enough: " + jobSeeker.getEducation());
-        } else {
-            result.addReason("Education too low");
+        // 1. Education (25 points)
+        // If equal or higher -> full points, if one level lower -> partial points
+        int eduGap = jobSeeker.getEducationLevel().compareTo(jobOpening.getRequiredEducation());
+        if (eduGap >= 0) {
+            score += 25;
+            result.addMatchedSkill("Education: " + jobSeeker.getEducationLevel());
+        } else if (eduGap == -1) {
+            score += 10; // Partial credit
+            result.addMatchedSkill("Education (Close): " + jobSeeker.getEducationLevel());
         }
 
-        // 2. check work area (must match exactly - usually can't be flexible here)
-        if (jobSeeker.getWorkArea().equalsIgnoreCase(jobOpening.getWorkArea())) {
-            score += 30;
+        // 2. Work Area (50 points) - Fuzzy Match
+        // "Software Engineering" should match "Software"
+        String seekerArea = jobSeeker.getWorkArea().toLowerCase();
+        String jobArea = jobOpening.getWorkArea().toLowerCase();
+
+        if (seekerArea.contains(jobArea) || jobArea.contains(seekerArea)) {
+            score += 50;
             result.addMatchedSkill("Work Area: " + jobSeeker.getWorkArea());
-        } else {
-            result.addReason("Wrong work area");
         }
 
-        // 3. check experience
-        int expDiff = jobSeeker.getYearsOfExperience() - jobOpening.getMinYearsExperience();
-        if (expDiff >= 0) {
-            score += 30;
-            result.addMatchedSkill("Experience: " + jobSeeker.getYearsOfExperience() + " years");
-        } else if (expDiff >= -1) {
-            // missing 1 year is okay
-            score += 15;
-            result.addReason("Experience almost matches (-1 year)");
+        // 3. Experience (25 points)
+        // Full points if met, partial if close (within 1 year)
+        int diff = jobSeeker.getYearsExperience() - jobOpening.getMinYearsExperience();
+        if (diff >= 0) {
+            score += 25;
+            result.addMatchedSkill("Experience: " + jobSeeker.getYearsExperience() + " years");
+        } else if (diff == -1) {
+            score += 10; // Partial
+            result.addReason("Experience slightly low: " + jobSeeker.getYearsExperience());
         } else {
-            result.addReason("Not enough experience");
+            result.addReason("Experience too low");
         }
 
         // cap score at 100

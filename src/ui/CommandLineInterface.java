@@ -9,7 +9,6 @@ import strategy.StrategyType;
 
 import java.util.Scanner;
 import java.util.List;
-import java.util.UUID;
 
 public class CommandLineInterface {
     private final MatchingService matchingService;
@@ -150,53 +149,38 @@ public class CommandLineInterface {
     }
 
     private void updateSeeker() {
-        System.out.println("\n--- Update Seeker ---");
-        System.out.print("Enter ID of seeker to update: ");
-        String idStr = scanner.nextLine();
-        try {
-            UUID id = UUID.fromString(idStr);
-            // Ideally we check if it exists first, but saving will just overwrite or add.
-            // Let's prompt for new details.
-            System.out.print("Enter New Full Name: ");
-            String name = scanner.nextLine();
+        System.out.println("\n--- Update Job Seeker ---");
+        System.out.print("Enter Seeker ID to update: ");
+        String id = scanner.nextLine();
 
-            System.out.println("Select New Education Level:");
-            for (EducationLevel level : EducationLevel.values()) {
-                System.out.println(level.ordinal() + ". " + level);
-            }
-            System.out.print("Choice: ");
-            int eduChoice = readIntInput();
-            EducationLevel eduLevel = EducationLevel.NONE;
-            if (eduChoice >= 0 && eduChoice < EducationLevel.values().length) {
-                eduLevel = EducationLevel.values()[eduChoice];
-            }
+        System.out.print("Enter new Full Name: ");
+        String name = scanner.nextLine();
 
-            System.out.print("New Years of Experience: ");
-            int experience = readIntInput();
-
-            System.out.print("New Work Area / Skills: ");
-            String workArea = scanner.nextLine();
-
-            JobSeeker updatedSeeker = new JobSeeker(id, name, eduLevel, experience, workArea);
-            matchingService.updateSeeker(updatedSeeker);
-            System.out.println("Job Seeker updated!");
-
-        } catch (IllegalArgumentException e) {
-            System.out.println("Invalid ID format.");
+        System.out.println("Select Education Level:");
+        for (EducationLevel level : EducationLevel.values()) {
+            System.out.println(level.ordinal() + ". " + level);
         }
+        System.out.print("Choice: ");
+        int eduIdx = readIntInput();
+        EducationLevel edu = EducationLevel.values()[eduIdx];
+
+        System.out.print("Enter years of experience: ");
+        int experience = readIntInput();
+
+        System.out.print("Enter work area (e.g. Software, Sales): ");
+        String workArea = scanner.nextLine();
+
+        JobSeeker updatedSeeker = new JobSeeker(id, name, edu, experience, workArea);
+        matchingService.updateSeeker(updatedSeeker);
+        System.out.println("Seeker updated (if ID existed).");
     }
 
     private void deleteSeeker() {
-        System.out.println("\n--- Delete Seeker ---");
-        System.out.print("Enter ID of seeker to delete: ");
-        String idStr = scanner.nextLine();
-        try {
-            UUID id = UUID.fromString(idStr);
-            matchingService.deleteSeeker(id);
-            System.out.println("Seeker deleted (if ID existed).");
-        } catch (IllegalArgumentException e) {
-            System.out.println("Invalid ID format.");
-        }
+        System.out.println("\n--- Delete Job Seeker ---");
+        System.out.print("Enter Seeker ID to delete: ");
+        String id = scanner.nextLine();
+        matchingService.deleteSeeker(id);
+        System.out.println("Seeker deleted (if ID existed).");
     }
 
     // --- Job Opening Management ---
@@ -238,12 +222,13 @@ public class CommandLineInterface {
         }
     }
 
+    // --- Job Opening Helper Methods ---
     private void listJobs() {
-        System.out.println("\n--- List of Job Openings ---");
         List<JobOpening> jobs = matchingService.getAllJobOpenings();
         if (jobs.isEmpty()) {
             System.out.println("No job openings found.");
         } else {
+            System.out.println("\n--- Job Openings ---");
             for (JobOpening job : jobs) {
                 System.out.println(job);
             }
@@ -251,7 +236,7 @@ public class CommandLineInterface {
     }
 
     private void addJob() {
-        System.out.println("\n--- Add New Job Opening ---");
+        System.out.println("\n--- Add Job Opening ---");
         System.out.print("Enter Job Title: ");
         String title = scanner.nextLine();
 
@@ -260,32 +245,29 @@ public class CommandLineInterface {
             System.out.println(level.ordinal() + ". " + level);
         }
         System.out.print("Choice: ");
-        int eduChoice = readIntInput();
-        EducationLevel eduLevel = EducationLevel.NONE;
-        if (eduChoice >= 0 && eduChoice < EducationLevel.values().length) {
-            eduLevel = EducationLevel.values()[eduChoice];
-        }
+        int eduIdx = readIntInput();
+        EducationLevel edu = EducationLevel.values()[eduIdx];
 
-        System.out.print("Minimum Years of Experience: ");
+        System.out.print("Enter minimum years of experience: ");
         int experience = readIntInput();
 
-        System.out.print("Enter Work Area / Skills: ");
+        System.out.print("Enter work area: ");
         String workArea = scanner.nextLine();
 
-        JobOpening newJob = new JobOpening(title, eduLevel, experience, workArea);
+        JobOpening newJob = new JobOpening(title, edu, experience, workArea);
         matchingService.addJobOpening(newJob);
-        System.out.println("Job Opening added successfully!");
+        System.out.println("Job Opening added with ID: " + newJob.getId());
     }
 
     private void findJob() {
         System.out.println("\n--- Find Job by Title ---");
-        System.out.print("Enter Title Payload: ");
+        System.out.print("Enter title (partial matches allowed): ");
         String title = scanner.nextLine();
-        List<JobOpening> results = matchingService.findJobOpeningsByTitle(title);
-        if (results.isEmpty()) {
+        List<JobOpening> jobs = matchingService.findJobOpeningsByTitle(title);
+        if (jobs.isEmpty()) {
             System.out.println("No jobs found.");
         } else {
-            for (JobOpening job : results) {
+            for (JobOpening job : jobs) {
                 System.out.println(job);
             }
         }
@@ -293,49 +275,37 @@ public class CommandLineInterface {
 
     private void updateJob() {
         System.out.println("\n--- Update Job Opening ---");
-        System.out.print("Enter ID of job to update: ");
-        String idStr = scanner.nextLine();
-        try {
-            UUID id = UUID.fromString(idStr);
-            System.out.print("Enter New Job Title: ");
-            String title = scanner.nextLine();
+        System.out.print("Enter Job ID to update: ");
+        String id = scanner.nextLine();
 
-            System.out.println("Select New Education Level:");
-            for (EducationLevel level : EducationLevel.values()) {
-                System.out.println(level.ordinal() + ". " + level);
-            }
-            System.out.print("Choice: ");
-            int eduChoice = readIntInput();
-            EducationLevel eduLevel = EducationLevel.NONE;
-            if (eduChoice >= 0 && eduChoice < EducationLevel.values().length) {
-                eduLevel = EducationLevel.values()[eduChoice];
-            }
+        System.out.print("Enter new Title: ");
+        String title = scanner.nextLine();
 
-            System.out.print("New Minimum Years of Experience: ");
-            int experience = readIntInput();
-
-            System.out.print("New Work Area / Skills: ");
-            String workArea = scanner.nextLine();
-
-            JobOpening updatedJob = new JobOpening(id, title, eduLevel, experience, workArea);
-            matchingService.updateJobOpening(updatedJob);
-            System.out.println("Job Opening updated!");
-        } catch (IllegalArgumentException e) {
-            System.out.println("Invalid ID format.");
+        System.out.println("Select Required Education Level:");
+        for (EducationLevel level : EducationLevel.values()) {
+            System.out.println(level.ordinal() + ". " + level);
         }
+        System.out.print("Choice: ");
+        int eduIdx = readIntInput();
+        EducationLevel edu = EducationLevel.values()[eduIdx];
+
+        System.out.print("Enter minimum years of experience: ");
+        int experience = readIntInput();
+
+        System.out.print("Enter work area: ");
+        String workArea = scanner.nextLine();
+
+        JobOpening updatedJob = new JobOpening(id, title, edu, experience, workArea);
+        matchingService.updateJobOpening(updatedJob);
+        System.out.println("Job updated (if ID existed).");
     }
 
     private void deleteJob() {
         System.out.println("\n--- Delete Job Opening ---");
-        System.out.print("Enter ID of job to delete: ");
-        String idStr = scanner.nextLine();
-        try {
-            UUID id = UUID.fromString(idStr);
-            matchingService.deleteJobOpening(id);
-            System.out.println("Job Opening deleted (if ID existed).");
-        } catch (IllegalArgumentException e) {
-            System.out.println("Invalid ID format.");
-        }
+        System.out.print("Enter Job ID to delete: ");
+        String id = scanner.nextLine();
+        matchingService.deleteJobOpening(id);
+        System.out.println("Job Opening deleted (if ID existed).");
     }
 
     // --- Matching Management ---
@@ -366,37 +336,29 @@ public class CommandLineInterface {
     }
 
     private void matchForSeeker() {
-        System.out.println("\n--- Match Recommendations for Seeker ---");
+        System.out.println("\n--- Match Jobs for a Candidate ---");
         System.out.print("Enter Seeker ID: ");
-        String idStr = scanner.nextLine();
-        try {
-            UUID seekerId = UUID.fromString(idStr);
-            StrategyType strategy = selectStrategy();
+        String seekerId = scanner.nextLine();
 
-            List<MatchResult> results = matchingService.matchJobsToCandidate(seekerId, strategy);
-            displayResults(results);
-            saveReportPrompt(results);
+        StrategyType strategy = selectStrategy();
 
-        } catch (IllegalArgumentException e) {
-            System.out.println("Invalid ID format.");
-        }
+        List<MatchResult> results = matchingService.matchJobsToCandidate(seekerId, strategy);
+        displayResults(results);
+
+        saveReportPrompt(results);
     }
 
     private void matchForJob() {
-        System.out.println("\n--- Find Candidates for Job ---");
+        System.out.println("\n--- Match Candidates for a Job ---");
         System.out.print("Enter Job Opening ID: ");
-        String idStr = scanner.nextLine();
-        try {
-            UUID jobId = UUID.fromString(idStr);
-            StrategyType strategy = selectStrategy();
+        String jobId = scanner.nextLine();
 
-            List<MatchResult> results = matchingService.matchCandidatesToJob(jobId, strategy);
-            displayResults(results);
-            saveReportPrompt(results);
+        StrategyType strategy = selectStrategy();
 
-        } catch (IllegalArgumentException e) {
-            System.out.println("Invalid ID format.");
-        }
+        List<MatchResult> results = matchingService.matchCandidatesToJob(jobId, strategy);
+        displayResults(results);
+
+        saveReportPrompt(results);
     }
 
     private StrategyType selectStrategy() {

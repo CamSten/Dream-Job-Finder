@@ -3,12 +3,11 @@ package repository;
 import model.JobSeeker;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 public interface JobSeekerRepository {
     void save(JobSeeker jobSeeker);
 
-    Optional<JobSeeker> findById(UUID id);
+    Optional<JobSeeker> findById(String id);
 
     List<JobSeeker> findAll();
 
@@ -16,5 +15,5 @@ public interface JobSeekerRepository {
 
     List<JobSeeker> findByName(String name);
 
-    void delete(UUID id);
+    void delete(String id);
 }

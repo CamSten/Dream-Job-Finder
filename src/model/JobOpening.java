@@ -1,10 +1,9 @@
 package model;
 
 import java.io.Serializable;
-import java.util.UUID;
 
 public class JobOpening implements Serializable {
-    private final UUID id;
+    private final String id;
     private String title;
     private EducationLevel requiredEducation;
     private int minYearsExperience;
@@ -12,19 +11,24 @@ public class JobOpening implements Serializable {
 
     // empty constructor for compatibility
     public JobOpening() {
-        this.id = UUID.randomUUID();
+        this.id = generateId();
     }
 
     public JobOpening(String title, EducationLevel requiredEducation, int minYearsExperience, String workArea) {
-        this.id = UUID.randomUUID();
+        this.id = generateId();
         this.title = title;
         this.requiredEducation = requiredEducation;
         this.minYearsExperience = minYearsExperience;
         this.workArea = workArea;
-
     }
 
-    public UUID getId() {
+    private String generateId() {
+        // Generates a random 4-digit ID between 1000 and 9999
+        int num = (int) (Math.random() * 9000) + 1000;
+        return String.valueOf(num);
+    }
+
+    public String getId() {
         return id;
     }
 
@@ -64,7 +68,7 @@ public class JobOpening implements Serializable {
     @Override
     public String toString() {
         return "JobOpening{" +
-                "id=" + id +
+                "id='" + id + '\'' +
                 ", title='" + title + '\'' +
                 ", requiredEducation=" + requiredEducation +
                 ", minYearsExperience=" + minYearsExperience +
@@ -80,7 +84,7 @@ public class JobOpening implements Serializable {
     // reads from text file line and creates object
     public static JobOpening fromDataString(String line) {
         String[] parts = line.split(";");
-        UUID id = UUID.fromString(parts[0]);
+        String id = parts[0];
         String title = parts[1];
         EducationLevel edu = EducationLevel.valueOf(parts[2]);
         int years = Integer.parseInt(parts[3]);
@@ -89,7 +93,7 @@ public class JobOpening implements Serializable {
         return new JobOpening(id, title, edu, years, area);
     }
 
-    public JobOpening(UUID id, String title, EducationLevel requiredEducation, int minYearsExperience,
+    public JobOpening(String id, String title, EducationLevel requiredEducation, int minYearsExperience,
             String workArea) {
         this.id = id;
         this.title = title;
