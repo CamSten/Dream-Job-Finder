@@ -12,5 +12,9 @@ public interface JobOpeningRepository {
 
     List<JobOpening> findAll();
 
+    void update(JobOpening jobOpening);
+
+    List<JobOpening> findByTitle(String title);
+
     void delete(UUID id);
 }

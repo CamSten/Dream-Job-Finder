@@ -61,12 +61,32 @@ public class FileJobOpeningRepository implements JobOpeningRepository {
         return openings;
     }
 
+    // updates the job opening
+    @Override
+    public void update(JobOpening jobOpening) {
+        save(jobOpening);
+    }
+
+    // filters list by title
+    @Override
+    public List<JobOpening> findByTitle(String title) {
+        List<JobOpening> all = findAll();
+        List<JobOpening> found = new ArrayList<>();
+
+        for (JobOpening jo : all) {
+            if (jo.getTitle().toLowerCase().contains(title.toLowerCase())) {
+                found.add(jo);
+            }
+        }
+        return found;
+    }
+
     // removes valid job opening by id
     @Override
     public void delete(UUID id) {
         List<JobOpening> allOpenings = findAll();
         boolean removed = allOpenings.removeIf(jo -> jo.getId().equals(id));
-        
+
         if (removed) {
             writeToFile(allOpenings);
         }
