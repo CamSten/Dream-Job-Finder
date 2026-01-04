@@ -1,1 +1,5 @@
-3464;Alice;PHD;5;Software
+1001;Anders Andersson;BACHELOR;5;IT
+1002;Birgitta Björk;MASTER;10;Management
+1003;Carl Carlson;HIGH_SCHOOL;2;Sales
+1004;Desirée Dahl;PHD;3;Research
+1005;Erik Eriksson;HIGH_SCHOOL;1;IT
