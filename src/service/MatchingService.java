@@ -23,6 +23,23 @@ public class MatchingService {
     private final JobSeekerRepository seekerRepo;
     private final JobOpeningRepository openingRepo;
 
+    // Wrapper methods for CLI
+    public List<JobSeeker> getAllSeekers() {
+        return seekerRepo.findAll();
+    }
+
+    public List<JobOpening> getAllJobOpenings() {
+        return openingRepo.findAll();
+    }
+
+    public void addSeeker(JobSeeker seeker) {
+        seekerRepo.save(seeker);
+    }
+
+    public void addJobOpening(JobOpening opening) {
+        openingRepo.save(opening);
+    }
+
     public MatchingService(JobSeekerRepository seekerRepo, JobOpeningRepository openingRepo) {
         this.seekerRepo = seekerRepo;
         this.openingRepo = openingRepo;

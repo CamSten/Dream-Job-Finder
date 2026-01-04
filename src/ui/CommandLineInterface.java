@@ -1,8 +1,11 @@
 package ui;
 
 import service.MatchingService;
+import model.JobSeeker;
+import model.EducationLevel;
 
 import java.util.Scanner;
+import java.util.List;
 
 public class CommandLineInterface {
     private final MatchingService matchingService;
@@ -23,8 +26,7 @@ public class CommandLineInterface {
 
             switch (choice) {
                 case 1:
-                    // TODO: handle seekers
-                    System.out.println("Manage Job Seekers (Coming Soon)");
+                    handleSeekers();
                     break;
                 case 2:
                     // TODO: handle jobs
@@ -51,6 +53,72 @@ public class CommandLineInterface {
         System.out.println("3. Match Jobs");
         System.out.println("4. Exit");
         System.out.print("Enter choice: ");
+    }
+
+    // --- Seeker Management ---
+    private void handleSeekers() {
+        boolean back = false;
+        while (!back) {
+            System.out.println("\n--- Manage Job Seekers ---");
+            System.out.println("1. List All Seekers");
+            System.out.println("2. Add new Seeker");
+            System.out.println("3. Back to Main Menu");
+            System.out.print("Enter choice: ");
+
+            int choice = readIntInput();
+            switch (choice) {
+                case 1:
+                    listSeekers();
+                    break;
+                case 2:
+                    addSeeker();
+                    break;
+                case 3:
+                    back = true;
+                    break;
+                default:
+                    System.out.println("Invalid option.");
+            }
+        }
+    }
+
+    private void listSeekers() {
+        System.out.println("\n--- List of Seekers ---");
+        List<JobSeeker> seekers = matchingService.getAllSeekers();
+        if (seekers.isEmpty()) {
+            System.out.println("No job seekers found.");
+        } else {
+            for (JobSeeker seeker : seekers) {
+                System.out.println(seeker);
+            }
+        }
+    }
+
+    private void addSeeker() {
+        System.out.println("\n--- Add New Seeker ---");
+        System.out.print("Enter Full Name: ");
+        String name = scanner.nextLine();
+
+        System.out.println("Select Education Level:");
+        for (EducationLevel level : EducationLevel.values()) {
+            System.out.println(level.ordinal() + ". " + level);
+        }
+        System.out.print("Choice: ");
+        int eduChoice = readIntInput();
+        EducationLevel eduLevel = EducationLevel.NONE;
+        if (eduChoice >= 0 && eduChoice < EducationLevel.values().length) {
+            eduLevel = EducationLevel.values()[eduChoice];
+        }
+
+        System.out.print("Years of Experience: ");
+        int experience = readIntInput();
+
+        System.out.print("Enter Work Area / Skills: ");
+        String workArea = scanner.nextLine();
+
+        JobSeeker newSeeker = new JobSeeker(name, eduLevel, experience, workArea);
+        matchingService.addSeeker(newSeeker);
+        System.out.println("Job Seeker added successfully!");
     }
 
     // helper to read int safely
