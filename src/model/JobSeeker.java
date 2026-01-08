@@ -22,6 +22,22 @@ public class JobSeeker implements Serializable {
         this.workArea = workArea;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setEducationLevel(EducationLevel educationLevel) {
+        this.educationLevel = educationLevel;
+    }
+
+    public void setYearsExperience(int yearsExperience) {
+        this.yearsExperience = yearsExperience;
+    }
+
+    public void setWorkArea(String workArea) {
+        this.workArea = workArea;
+    }
+
     private String generateId() {
         // Generates a random 4-digit ID between 1000 and 9999
         int num = (int) (Math.random() * 9000) + 1000;
@@ -70,7 +86,7 @@ public class JobSeeker implements Serializable {
         return "JobSeeker{" +
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
-                ", educationLevel=" + educationLevel +
+                ", educationLevel=" + educationLevel.toString() +
                 ", yearsExperience=" + yearsExperience +
                 ", workArea='" + workArea + '\'' +
                 '}';
@@ -78,7 +94,14 @@ public class JobSeeker implements Serializable {
 
     // converts to string so we can save to text file
     public String toDataString() {
-        return id + ";" + name + ";" + educationLevel + ";" + yearsExperience + ";" + workArea;
+        return id + ";" + name + ";" + educationLevel.name() + ";" + yearsExperience + ";" + workArea;
+    }
+    public String printout(){
+        return "ID: " + id + "\nTitle: " + name + "\nEducation level: " + educationLevel + "\nYears of experience: " + yearsExperience + "\nWork area: " + workArea;
+    }
+    public String printoutWithoutName(){
+        return "ID: " + id + "\nEducation level: " + educationLevel + "\nYears of experience: " + yearsExperience + "\nWork area: " + workArea;
+
     }
 
     // reads from text file line and creates object

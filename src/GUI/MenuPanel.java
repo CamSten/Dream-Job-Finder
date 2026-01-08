@@ -31,30 +31,30 @@ public class MenuPanel extends JPanel implements Subscriber{
         add(header);
         setOpaque(true);
 
-        JButton optionAddSeeker = new JButton("Add new job seeker");
-        allOptionButtons.add(optionAddSeeker);
-        optionAddSeeker.addActionListener(new ActionListener() {
+        JButton optionHandleSeeker = new JButton("Handle job seekers");
+        allOptionButtons.add(optionHandleSeeker);
+        optionHandleSeeker.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                update(EventType.REQUEST_ADD_SEEKER, null);
+                update(EventType.REQUEST_HANDLE_SEEKER, null);
             }
         });
-        JButton optionAddOpening = new JButton("Add new job opening");
-        allOptionButtons.add(optionAddOpening);
-        optionAddOpening.addActionListener(new ActionListener() {
+        JButton optionHandleOpening = new JButton("Handle job openings");
+        allOptionButtons.add(optionHandleOpening);
+        optionHandleOpening.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                update(EventType.REQUEST_ADD_OPENING, null);
+                update(EventType.REQUEST_HANDLE_OPENING, null);
             }
         });
-        JButton optionSearch = new JButton("Search database");
-        allOptionButtons.add(optionSearch);
-        optionSearch.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                update(EventType.REQUEST_SEARCH, null);
-            }
-        });
+//        JButton optionSearch = new JButton("Search database");
+//        allOptionButtons.add(optionSearch);
+//        optionSearch.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                update(EventType.REQUEST_SEARCH, null);
+//            }
+//        });
         JButton optionMatch = new JButton("Match");
         allOptionButtons.add(optionMatch);
         optionMatch.addActionListener(new ActionListener() {
@@ -63,22 +63,22 @@ public class MenuPanel extends JPanel implements Subscriber{
                 update(EventType.REQUEST_MATCH, null);
             }
         });
-        JButton optionEdit = new JButton("Edit");
-        allOptionButtons.add(optionEdit);
-        optionEdit.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                update(EventType.REQUEST_EDIT, null);
-            }
-        });
-        JButton optionRemove = new JButton("Remove");
-        allOptionButtons.add(optionRemove);
-        optionRemove.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                update(EventType.REQUEST_REMOVE, null);
-            }
-        });
+//        JButton optionEdit = new JButton("Edit");
+//        allOptionButtons.add(optionEdit);
+//        optionEdit.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                update(EventType.REQUEST_EDIT, null);
+//            }
+//        });
+//        JButton optionRemove = new JButton("Remove");
+//        allOptionButtons.add(optionRemove);
+//        optionRemove.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                update(EventType.REQUEST_REMOVE, null);
+//            }
+//        });
         JPanel menuButtons = new JPanel();
         menuButtons.setBackground(Colors.getButtonBackgroundColor());
         menuButtons.setOpaque(true);

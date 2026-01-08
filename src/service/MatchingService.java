@@ -1,8 +1,12 @@
 package service;
 
+import Controller.ApplicationManager;
+import GUI.Subscriber;
 import model.JobOpening;
 import model.JobSeeker;
 import model.MatchResult;
+import repository.FileJobOpeningRepository;
+import repository.FileJobSeekerRepository;
 import repository.JobOpeningRepository;
 import repository.JobSeekerRepository;
 import strategy.MatchingStrategy;
@@ -17,12 +21,15 @@ import java.util.Comparator;
 import java.util.List;
 
 public class MatchingService {
+    private ApplicationManager applicationManager;
 
     private final JobSeekerRepository seekerRepo;
     private final JobOpeningRepository openingRepo;
 
+
     // Wrapper methods for CLI
     public List<JobSeeker> getAllSeekers() {
+        System.out.println("getAllSeekers in MatchingService was reached");
         return seekerRepo.findAll();
     }
 
@@ -38,33 +45,50 @@ public class MatchingService {
         openingRepo.save(opening);
     }
 
-    public List<JobSeeker> findSeekersByName(String name) {
-        return seekerRepo.findByName(name);
+    public void findSeekersByName(String name) {
+        List<JobSeeker> results = seekerRepo.findByName(name);
+        if (results.isEmpty()){
+            applicationManager.update(Subscriber.EventType.RETURN_SEEKER_NOT_FOUND, null);
+        }
+        else {
+            applicationManager.update(Subscriber.EventType.RETURN_FOUND_SEEKERS, results);
+        }
     }
 
     public void updateSeeker(JobSeeker seeker) {
         seekerRepo.update(seeker);
+        applicationManager.update(Subscriber.EventType.RETURN_EDIT_SUCCESSFUL, seeker);
     }
 
     public void deleteSeeker(String id) {
         seekerRepo.delete(id);
+        applicationManager.update(Subscriber.EventType.RETURN_REMOVE_SUCCESSFUL, id);
     }
 
-    public List<JobOpening> findJobOpeningsByTitle(String title) {
-        return openingRepo.findByTitle(title);
+    public void findJobOpeningsByTitle(String title) {
+        List<JobOpening> results = openingRepo.findByTitle(title);
+        if (results.isEmpty()){
+            applicationManager.update(Subscriber.EventType.RETURN_OPENING_NOT_FOUND, null);
+        }
+        else {
+            applicationManager.update(Subscriber.EventType.RETURN_FOUND_OPENINGS, results);
+        }
     }
 
     public void updateJobOpening(JobOpening opening) {
         openingRepo.update(opening);
+        applicationManager.update(Subscriber.EventType.RETURN_EDIT_SUCCESSFUL, opening);
     }
 
     public void deleteJobOpening(String id) {
         openingRepo.delete(id);
+        applicationManager.update(Subscriber.EventType.RETURN_REMOVE_SUCCESSFUL, id);
     }
 
-    public MatchingService(JobSeekerRepository seekerRepo, JobOpeningRepository openingRepo) {
+    public MatchingService(JobSeekerRepository seekerRepo, JobOpeningRepository openingRepo, ApplicationManager applicationManager) {
         this.seekerRepo = seekerRepo;
         this.openingRepo = openingRepo;
+        this.applicationManager = applicationManager;
     }
 
     // Matches all candidates to a specific job opening
@@ -139,4 +163,5 @@ public class MatchingService {
             System.err.println("Error saving report: " + e.getMessage());
         }
     }
+
 }

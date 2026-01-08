@@ -14,14 +14,18 @@ public class MainFrame extends JFrame implements Subscriber {
     private JPanel centerPanel;
     private JPanel bottomPanel;
     private MenuPanel menuPanel;
+    private JobPanel jobPanel;
+    private SeekerPanel seekerPanel;
     private SearchPanel searchPanel;
     private AdderPanel adderPanel;
     private MatchPanel matchPanel;
     private ResultPanel resultPanel;
-    public enum AdderObject {SEEKER, OPENING};
+    private EditPanel editPanel;
     public static Controller.ApplicationManager applicationManager;
+    private PanelMaker panelMaker;
 
     public MainFrame(ApplicationManager applicationManager){
+        this.panelMaker = new PanelMaker(this);
         System.out.println("MainFrame constructor was reached");
         this.applicationManager = applicationManager;
         setTitle("DreamJobFinder");
@@ -55,19 +59,25 @@ public class MainFrame extends JFrame implements Subscriber {
         centerPanel.add(menuPanel, BorderLayout.CENTER);
         adjustCenterPanel(menuPanel);
     }
-    public void showSearchPanel(){
+    public void showSearchPanel(EventType eventType){
         removeCenterPanelContent();
         if (searchPanel == null){
-            this.searchPanel = new SearchPanel(this);
+            this.searchPanel = new SearchPanel(this, eventType, panelMaker);
+        }
+        else {
+            searchPanel.showSearchPanel(eventType);
         }
         centerPanel.add(searchPanel, BorderLayout.CENTER);
         adjustCenterPanel(searchPanel);
         adjustBottomPanel();
     }
-    public void showAdderPanel(AdderObject adderObject){
+    public void showAdderPanel(EventType eventType){
         removeCenterPanelContent();
         if (adderPanel == null){
-            this.adderPanel = new AdderPanel(this, adderObject);
+            this.adderPanel = new AdderPanel(this, eventType, panelMaker);
+        }
+        else {
+            adderPanel.showAdderPanel(eventType);
         }
         applicationManager.addSubscriber(adderPanel);
         centerPanel.add(adderPanel, BorderLayout.CENTER);
@@ -84,20 +94,56 @@ public class MainFrame extends JFrame implements Subscriber {
         adjustCenterPanel(menuPanel);
         adjustBottomPanel();
     }
-    public void showResultPanel(EventType eventType){
+    public void showResultPanel(EventType eventType, Object data){
+        System.out.println("SHOW RESULT PANEL IS REACHED");
         removeCenterPanelContent();
         if (resultPanel == null){
-            this.resultPanel = new ResultPanel(this, eventType);
+            this.resultPanel = new ResultPanel(this, eventType, data);
+            applicationManager.addSubscriber(resultPanel);
+        }
+        else {
+            resultPanel.checkInput(eventType, data);
         }
         centerPanel.add(resultPanel, BorderLayout.CENTER);
-        applicationManager.addSubscriber(resultPanel);
         adjustCenterPanel(resultPanel);
         adjustBottomPanel();
     }
-    public void showEditPanel(){
-
+    public void showJobPanel(){
+        removeCenterPanelContent();
+        if (jobPanel == null){
+            this.jobPanel = new JobPanel(this);
+        }
+        centerPanel.add(jobPanel, BorderLayout.CENTER);
+        applicationManager.addSubscriber(jobPanel);
+        adjustCenterPanel(jobPanel);
+        adjustBottomPanel();
     }
-    public void showRemovePanel(){
+    public void showSeekerPanel(){
+        removeCenterPanelContent();
+        if (seekerPanel == null){
+            this.seekerPanel = new SeekerPanel(this);
+        }
+        centerPanel.add(seekerPanel, BorderLayout.CENTER);
+        applicationManager.addSubscriber(seekerPanel);
+        adjustCenterPanel(seekerPanel);
+        adjustBottomPanel();
+    }
+
+    public void showEditPanel(EventType eventType, Object data){
+        System.out.println("showEditPanel in MainFrame is reached");
+        removeCenterPanelContent();
+        if (editPanel == null){
+            this.editPanel = new EditPanel(this, eventType, data, panelMaker);
+            applicationManager.addSubscriber(editPanel);
+        }
+        else {
+            editPanel.showEditPanel(eventType, data);
+        }
+        centerPanel.add(editPanel, BorderLayout.CENTER);
+        adjustCenterPanel(editPanel);
+        adjustBottomPanel();
+    }
+    public void showRemovePanel(EventType eventType){
 
     }
 
@@ -138,6 +184,7 @@ public class MainFrame extends JFrame implements Subscriber {
         pack();
     }
     public void update(EventType option, Object data) {
+        System.out.println("--------- update in MainFrame is: " + option);
         applicationManager.update(option, data);
     }
 }

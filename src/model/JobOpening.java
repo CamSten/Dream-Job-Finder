@@ -1,6 +1,8 @@
 package model;
 
+import javax.swing.plaf.PanelUI;
 import java.io.Serializable;
+import java.security.PublicKey;
 
 public class JobOpening implements Serializable {
     private final String id;
@@ -26,6 +28,22 @@ public class JobOpening implements Serializable {
         // Generates a random 4-digit ID between 1000 and 9999
         int num = (int) (Math.random() * 9000) + 1000;
         return String.valueOf(num);
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setRequiredEducation(EducationLevel requiredEducation) {
+        this.requiredEducation = requiredEducation;
+    }
+
+    public void setMinYearsExperience(int minYearsExperience) {
+        this.minYearsExperience = minYearsExperience;
+    }
+
+    public void setWorkArea(String workArea) {
+        this.workArea = workArea;
     }
 
     public String getId() {
@@ -74,6 +92,10 @@ public class JobOpening implements Serializable {
                 ", minYearsExperience=" + minYearsExperience +
                 ", workArea='" + workArea + '\'' +
                 '}';
+    }
+
+    public String printout(){
+        return "ID: " + id + "\nTitle: " + title + "\nRequired education level: " + requiredEducation + "\nRequired years of experience: " + minYearsExperience + "\nWork area: " + workArea;
     }
 
     // converts to string so we can save to text file

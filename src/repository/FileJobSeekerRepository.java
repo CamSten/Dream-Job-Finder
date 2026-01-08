@@ -1,5 +1,7 @@
 package repository;
 
+import Controller.ApplicationManager;
+import GUI.Subscriber;
 import model.JobSeeker;
 
 import java.io.BufferedReader;
@@ -13,15 +15,18 @@ import java.util.List;
 import java.util.Optional;
 
 public class FileJobSeekerRepository implements JobSeekerRepository {
-    private final String filePath;
+    private final String filePath = "jobSeekers.txt";
+    private ApplicationManager applicationManager;
 
-    public FileJobSeekerRepository(String filePath) {
-        this.filePath = filePath;
+    public FileJobSeekerRepository(ApplicationManager applicationManager) {
+        this.applicationManager = applicationManager;
+        System.out.println("FileJobSeekerRepository constructor is reached");
         ensureFileExists();
     }
 
     // checks if file exists so we dont get error
     private void ensureFileExists() {
+        System.out.println("ensureFileExists in FJSR is reached");
         try {
             File file = new File(filePath);
             if (!file.exists()) {
@@ -49,11 +54,14 @@ public class FileJobSeekerRepository implements JobSeekerRepository {
             if (all.get(i).getId().equals(jobSeeker.getId())) {
                 all.set(i, jobSeeker);
                 exists = true;
+                applicationManager.update(Subscriber.EventType.RETURN_SEEKER_ALREADY_EXIST, null);
                 break;
             }
         }
         if (!exists) {
             all.add(jobSeeker);
+            applicationManager.update(Subscriber.EventType.RETURN_ADD_SUCCESSFUL, null);
+
         }
         writeAll(all);
     }
@@ -68,6 +76,7 @@ public class FileJobSeekerRepository implements JobSeekerRepository {
     // reads everything from the file and returns a list
     @Override
     public List<JobSeeker> findAll() {
+        System.out.println("findAll in FJSR is reached");
         List<JobSeeker> seekers = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
