@@ -36,6 +36,7 @@ public class PanelMaker {
     private JPanel multipleInputPanel;
     private JPanel singleInputPanel;
     JTextField singleInputField;
+    private JPanel buttonPanel;
     private EditPanel editPanel;
 
     public PanelMaker(MainFrame mainFrame) {
@@ -45,7 +46,6 @@ public class PanelMaker {
         this.data = data;
         System.out.println("getPanels in PanelMaker is reached, eventType is: " + eventTypeRequest);
         this.eventTypeRequest = eventTypeRequest;
-        JPanel buttonPanel = getSubmitButtonPanel(eventTypeRequest);
 
         JPanel inputPanel =  new JPanel();
         if (eventTypeRequest == Subscriber.EventType.REQUEST_ADD_OPENING || eventTypeRequest == Subscriber.EventType.REQUEST_ADD_SEEKER){
@@ -63,9 +63,29 @@ public class PanelMaker {
         JPanel panels = new JPanel();
         panels.setLayout(new BoxLayout(panels, BoxLayout.Y_AXIS));
         panels.add(inputPanel);
-        panels.add(buttonPanel);
+        if (shouldShowSubmitButton(eventTypeRequest)) {
+            this.buttonPanel = getSubmitButtonPanel(eventTypeRequest);
+            panels.add(buttonPanel);
+        }
         System.out.println("----panels is returned from getPanels");
         return panels;
+    }
+    private boolean shouldShowSubmitButton(Subscriber.EventType eventType) {
+        return switch (eventType) {
+            case REQUEST_ADD_OPENING,
+                 REQUEST_ADD_SEEKER,
+                 REQUEST_EDIT_OPENING,
+                 REQUEST_EDIT_SEEKER,
+                 REQUEST_EDIT_FIELDS_OPENING,
+                 REQUEST_EDIT_FIELDS_SEEKER,
+                 REQUEST_SEARCH_OPENING,
+                 REQUEST_SEARCH_SEEKER -> true;
+
+            case RETURN_FOUND_OPENINGS,
+                 RETURN_FOUND_SEEKERS -> false;
+
+            default -> false;
+        };
     }
     private JPanel getSubmitButtonPanel(Subscriber.EventType eventType) {
         JButton submitButton = getSubmitButton(eventType);
@@ -76,6 +96,7 @@ public class PanelMaker {
         JPanel submitWrapper = new JPanel();
         submitWrapper.setBackground(Colors.getBackgroundColor());
         submitWrapper.add(submitPanel);
+
         return submitWrapper;
     }
     private JButton getSubmitButton(Subscriber.EventType eventType) {

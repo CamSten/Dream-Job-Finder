@@ -128,16 +128,27 @@ public class ResultPanel extends JPanel implements Subscriber {
     }
     private JPanel getConfirmationPanel (EventType eventType){
         JPanel confirmationPanel = new JPanel();
+        confirmationPanel.setLayout(new BoxLayout(confirmationPanel, BoxLayout.Y_AXIS));
+        confirmationPanel.setBackground(Colors.getBackgroundColor());
         if (eventType == EventType.RETURN_ADD_SUCCESSFUL){
             JLabel confirmation = new JLabel("New submission has been added successfully.");
+            confirmation.setFont(Fonts.getHeaderFont());
+            confirmation.setBackground(Colors.getBackgroundColor());
+            confirmation.setForeground(Colors.getHeaderColor());
             confirmationPanel.add(confirmation);
         }
         else if (eventType == EventType.RETURN_EDIT_SUCCESSFUL){
             JLabel confirmation = new JLabel("The post has been edited: ");
+            confirmation.setFont(Fonts.getHeaderFont());
+            confirmation.setBackground(Colors.getBackgroundColor());
+            confirmation.setForeground(Colors.getHeaderColor());
             confirmationPanel.add(confirmation);
         }
         else if (eventType == EventType.RETURN_REMOVE_SUCCESSFUL){
             JLabel confirmation = new JLabel("The post has been deleted.");
+            confirmation.setFont(Fonts.getHeaderFont());
+            confirmation.setBackground(Colors.getBackgroundColor());
+            confirmation.setForeground(Colors.getHeaderColor());
             confirmationPanel.add(confirmation);
         }
         return confirmationPanel;
@@ -152,8 +163,8 @@ public class ResultPanel extends JPanel implements Subscriber {
         }
         infoText.setEditable(false);
         infoText.setFont(Fonts.getButtonFont());
-        infoText.setForeground(Color.WHITE);
-        infoText.setBackground(Colors.getHeaderColor());
+        infoText.setForeground(Colors.getHeaderColor());
+        infoText.setBackground(Colors.getButtonBackgroundColor());
         infoText.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         return infoText;
     }

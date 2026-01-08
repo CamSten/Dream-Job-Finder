@@ -44,6 +44,13 @@ public class EditPanel extends JPanel implements Subscriber{
         showEditPanel(eventType, data);
     }
 
+    // if (eventType == Subscriber.EventType.RETURN_FOUND_THIS_SEEKER || eventType == Subscriber.EventType.RETURN_FOUND_THIS_OPENING){
+    //            submitWrapper.setVisible(false);
+    //        }
+    //        else {
+    //            submitWrapper.setVisible(true);
+    //        }
+
 
 
 
