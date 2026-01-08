@@ -119,8 +119,10 @@ public class FileJobSeekerRepository implements JobSeekerRepository {
         if (removed) {
             writeAll(all);
             System.out.println("Deleted seeker with ID: " + id);
+            applicationManager.update(Subscriber.EventType.RETURN_REMOVE_SUCCESSFUL, null);
         } else {
             System.out.println("ID not found: " + id);
+            applicationManager.update(Subscriber.EventType.RETURN_REMOVE_NOT_SUCCESSFUL, null);
         }
     }
 

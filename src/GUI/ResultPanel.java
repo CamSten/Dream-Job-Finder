@@ -64,7 +64,7 @@ public class ResultPanel extends JPanel implements Subscriber {
         repaint();
         revalidate();
     }
-    private void displayList(Object data){
+    private void displayList(Object data, EventType eventType){
         getData(data);
         System.out.println("in ResultPanel, displayList is reached, eventType is:" + eventType);
         centerPanel.removeAll();
@@ -108,14 +108,17 @@ public class ResultPanel extends JPanel implements Subscriber {
         wrapperPanel.add(scrollResults, BorderLayout.CENTER);
     }
 
-    private void displayConfirmation(EventType eventType, Object data){
+    private void displayConfirmation(EventType eventType, Object data, boolean success){
         JPanel confirmationPanel = new JPanel();
         JPanel confirmation = getConfirmationPanel(eventType);
-        confirmationPanel.add(confirmation);
-        if (eventType == EventType.RETURN_ADD_SUCCESSFUL || eventType == EventType.RETURN_EDIT_SUCCESSFUL){
-            JTextArea info = getConfirmationInfo(data);
-            confirmation.add(info);
+        if (eventType == EventType.RETURN_ADD_SUCCESSFUL || eventType == EventType.RETURN_EDIT_SUCCESSFUL || eventType == EventType.RETURN_REMOVE_SUCCESSFUL){
+            String info = getConfirmationInfo(data);
+            getTextArea(confirmation, info);
         }
+        else if (!success){
+
+        }
+        confirmationPanel.add(confirmation);
         confirmationPanel.setBackground(Colors.getBackgroundColor());
         confirmationPanel.setForeground(Colors.getHeaderColor());
         confirmationPanel.setFont(Fonts.getHeaderFont());
@@ -130,43 +133,38 @@ public class ResultPanel extends JPanel implements Subscriber {
         JPanel confirmationPanel = new JPanel();
         confirmationPanel.setLayout(new BoxLayout(confirmationPanel, BoxLayout.Y_AXIS));
         confirmationPanel.setBackground(Colors.getBackgroundColor());
+        String text = "";
         if (eventType == EventType.RETURN_ADD_SUCCESSFUL){
-            JLabel confirmation = new JLabel("New submission has been added successfully.");
-            confirmation.setFont(Fonts.getHeaderFont());
-            confirmation.setBackground(Colors.getBackgroundColor());
-            confirmation.setForeground(Colors.getHeaderColor());
-            confirmationPanel.add(confirmation);
+            text = "New submission has been added successfully.";
         }
         else if (eventType == EventType.RETURN_EDIT_SUCCESSFUL){
-            JLabel confirmation = new JLabel("The post has been edited: ");
-            confirmation.setFont(Fonts.getHeaderFont());
-            confirmation.setBackground(Colors.getBackgroundColor());
-            confirmation.setForeground(Colors.getHeaderColor());
-            confirmationPanel.add(confirmation);
+            text = "The post has been edited: ";
         }
         else if (eventType == EventType.RETURN_REMOVE_SUCCESSFUL){
-            JLabel confirmation = new JLabel("The post has been deleted.");
-            confirmation.setFont(Fonts.getHeaderFont());
-            confirmation.setBackground(Colors.getBackgroundColor());
-            confirmation.setForeground(Colors.getHeaderColor());
-            confirmationPanel.add(confirmation);
+            text = "The post has been deleted.";
         }
+        else if (eventType == EventType.RETURN_REMOVE_NOT_SUCCESSFUL){
+            text = "Deleting was unsuccessful: the post has not been found";
+        }
+        JLabel confirmation = new JLabel(text);
+        confirmation.setFont(Fonts.getHeaderFont());
+        confirmation.setBackground(Colors.getBackgroundColor());
+        confirmation.setForeground(Colors.getHeaderColor());
+        confirmationPanel.add(confirmation);
         return confirmationPanel;
     }
-    private JTextArea getConfirmationInfo (Object data){
-        JTextArea infoText = new JTextArea();
+    private String getConfirmationInfo (Object data){
+        String text = "";
         if (data instanceof JobSeeker seeker){
-            infoText.setText(seeker.printout());
+            text = seeker.printout();
         }
         else if (data instanceof JobOpening opening){
-            infoText.setText(opening.printout());
+            text = opening.printout();
         }
-        infoText.setEditable(false);
-        infoText.setFont(Fonts.getButtonFont());
-        infoText.setForeground(Colors.getHeaderColor());
-        infoText.setBackground(Colors.getButtonBackgroundColor());
-        infoText.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        return infoText;
+        else if (data == null){
+            text = "";
+        }
+        return text;
     }
     private String findTerm(Object data) {
         System.out.println("findTerm in ResultPanel is reached. Data is: " + data.getClass());
@@ -238,15 +236,19 @@ public class ResultPanel extends JPanel implements Subscriber {
     }
 
     public void checkInput(EventType eventType, Object data) {
+        this.eventType = eventType;
         switch (eventType){
             case RETURN_ADD_OPENING, RETURN_ADD_SEEKER, RETURN_ADD_SUCCESSFUL, RETURN_EDIT_SUCCESSFUL, RETURN_REMOVE_SUCCESSFUL ->{
-                displayConfirmation(eventType, data);
+                displayConfirmation(eventType, data, true);
             }
             case RETURN_FOUND_THIS_OPENING, RETURN_FOUND_THIS_SEEKER -> {
                 displayFoundTerm(data);
             }
             case RETURN_FOUND_OPENINGS, RETURN_FOUND_SEEKERS -> {
-                displayList(data);
+                displayList(data, eventType);
+            }
+            case RETURN_OPENING_NOT_FOUND, RETURN_SEEKER_NOT_FOUND, RETURN_REMOVE_NOT_SUCCESSFUL -> {
+                displayConfirmation(eventType, data, false);
             }
         }
     }
@@ -255,13 +257,13 @@ public class ResultPanel extends JPanel implements Subscriber {
         System.out.println("update in ResultPanel was reached, case is: " + eventType);
         switch (eventType){
             case RETURN_ADD_OPENING, RETURN_ADD_SEEKER ->{
-                displayConfirmation(eventType, data);
+                displayConfirmation(eventType, data, true);
             }
             case RETURN_FOUND_THIS_OPENING, RETURN_FOUND_THIS_SEEKER -> {
                 displayFoundTerm(data);
             }
             case RETURN_FOUND_OPENINGS, RETURN_FOUND_SEEKERS -> {
-                displayList(data);
+                displayList(data, eventType);
             }
         }
     }

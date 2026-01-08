@@ -5,13 +5,15 @@ import model.JobOpening;
 import model.JobSeeker;
 import javax.swing.*;
 import java.awt.*;
-import java.lang.ref.ReferenceQueue;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class PanelMaker {
     private String term;
     private String promptTerm = "";
+    private String actionTerm = "";
+    private String imperativeActionTerm;
     List<JLabel> allLabels = new ArrayList<>();
     List<JTextField> allInputFields = new ArrayList<>();
     private JPanel promptPanel;
@@ -38,30 +40,33 @@ public class PanelMaker {
     JTextField singleInputField;
     private JPanel buttonPanel;
     private EditPanel editPanel;
+    private RemovePanel removePanel;
 
     public PanelMaker(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
     }
     public JPanel getPanels(Subscriber.EventType eventTypeRequest, Object data) {
         this.data = data;
+        setTerms(eventTypeRequest);
         System.out.println("getPanels in PanelMaker is reached, eventType is: " + eventTypeRequest);
         this.eventTypeRequest = eventTypeRequest;
-
+        JPanel headerPanel = getHeaderPanel(eventTypeRequest);
         JPanel inputPanel =  new JPanel();
         if (eventTypeRequest == Subscriber.EventType.REQUEST_ADD_OPENING || eventTypeRequest == Subscriber.EventType.REQUEST_ADD_SEEKER){
             inputPanel = getMultipleInputPanel(eventTypeRequest, data);
         }
-        else if(eventTypeRequest == Subscriber.EventType.REQUEST_EDIT_OPENING || eventTypeRequest == Subscriber.EventType.REQUEST_EDIT_SEEKER){
-            inputPanel = getSingleInputPanel(eventType);
+        else if(eventTypeRequest == Subscriber.EventType.REQUEST_SEARCH_SEEKER || eventTypeRequest == Subscriber.EventType.REQUEST_SEARCH_OPENING || eventTypeRequest == Subscriber.EventType.REQUEST_EDIT_OPENING || eventTypeRequest == Subscriber.EventType.REQUEST_EDIT_SEEKER || eventTypeRequest == Subscriber.EventType.REQUEST_REMOVE_SEEKER || eventTypeRequest == Subscriber.EventType.REQUEST_REMOVE_OPENING){
+            inputPanel = getSingleInputPanel(eventTypeRequest);
         }
         else if (eventTypeRequest == Subscriber.EventType.RETURN_FOUND_OPENINGS || eventTypeRequest == Subscriber.EventType.RETURN_FOUND_SEEKERS){
             inputPanel = getOptionsPanel(eventTypeRequest, data);
         }
         else if(eventTypeRequest == Subscriber.EventType.REQUEST_EDIT_FIELDS_OPENING || eventTypeRequest == Subscriber.EventType.REQUEST_EDIT_FIELDS_SEEKER) {
-            inputPanel = getMultipleInputPanel(eventType, data);
+            inputPanel = getMultipleInputPanel(eventTypeRequest, data);
         }
         JPanel panels = new JPanel();
         panels.setLayout(new BoxLayout(panels, BoxLayout.Y_AXIS));
+        panels.add(headerPanel);
         panels.add(inputPanel);
         if (shouldShowSubmitButton(eventTypeRequest)) {
             this.buttonPanel = getSubmitButtonPanel(eventTypeRequest);
@@ -78,6 +83,8 @@ public class PanelMaker {
                  REQUEST_EDIT_SEEKER,
                  REQUEST_EDIT_FIELDS_OPENING,
                  REQUEST_EDIT_FIELDS_SEEKER,
+                 REQUEST_REMOVE_SEEKER,
+                 REQUEST_REMOVE_OPENING,
                  REQUEST_SEARCH_OPENING,
                  REQUEST_SEARCH_SEEKER -> true;
 
@@ -110,7 +117,7 @@ public class PanelMaker {
                     sendUpdatedInfo(newInput);
                 }
             }
-            else if (eventType == Subscriber.EventType.REQUEST_EDIT_SEEKER || eventType == Subscriber.EventType.REQUEST_EDIT_OPENING || eventType == Subscriber.EventType.REQUEST_SEARCH_SEEKER || eventType == Subscriber.EventType.REQUEST_SEARCH_OPENING){
+            else if (eventType == Subscriber.EventType.REQUEST_EDIT_SEEKER || eventType == Subscriber.EventType.REQUEST_EDIT_OPENING || eventType == Subscriber.EventType.REQUEST_SEARCH_SEEKER || eventType == Subscriber.EventType.REQUEST_SEARCH_OPENING || eventType == Subscriber.EventType.REQUEST_REMOVE_SEEKER || eventType == Subscriber.EventType.REQUEST_REMOVE_OPENING){
                 gatherSingleInput(eventType);
             }
             else {
@@ -153,6 +160,7 @@ public class PanelMaker {
         }
     }
     private JPanel getMultipleInputPanel(Subscriber.EventType eventType, Object data) {
+        boolean isEditing = getIsEditing(eventType);
         System.out.println("in addInputFields, eventType is: " + eventType);
         List<JTextField> allInputFields = getInputFields(data);
         allLabels = new ArrayList<>();
@@ -194,7 +202,7 @@ public class PanelMaker {
             inputPanel.add(queryPanel);
             inputPanel.add(Box.createVerticalStrut(5));
         }
-        inputPanel.add(getEduRow());
+        inputPanel.add(getEduRow(isEditing, data));
         JPanel wrapperPanel = new JPanel();
         wrapperPanel.setBackground(Colors.getHeaderColor());
         wrapperPanel.setBorder(BorderFactory.createLineBorder(Colors.getHeaderColor(), 5, true));
@@ -269,16 +277,19 @@ public class PanelMaker {
         System.out.println("in getInputPromptOpening, allLabels.size is: " + allLabels.size());
         return allLabels;
     }
-    public void setTerm(Subscriber.EventType eventType){
-        if (eventType == Subscriber.EventType.REQUEST_ADD_SEEKER){
-            this.term = "job seeker";
-            this.eventTypeReturn = Subscriber.EventType.RETURN_ADD_SEEKER;
-        }
-        else if (eventType == Subscriber.EventType.REQUEST_ADD_OPENING) {
-            this.term = "job opening";
-            this.eventTypeReturn = Subscriber.EventType.RETURN_ADD_OPENING;
-        }
+    private boolean getIsEditing(Subscriber.EventType eventType){
+        return eventType == Subscriber.EventType.REQUEST_EDIT_FIELDS_SEEKER || eventType == Subscriber.EventType.REQUEST_EDIT_FIELDS_OPENING;
     }
+//    public void setTerm(Subscriber.EventType eventType){
+//        if (eventType == Subscriber.EventType.REQUEST_ADD_SEEKER || eventType == Subscriber.EventType.REQUEST_EDIT_SEEKER || eventType == Subscriber.EventType.REQUEST_REMOVE_SEEKER) {
+//            this.term = "job seeker";
+//            this.eventTypeReturn = Subscriber.EventType.RETURN_ADD_SEEKER;
+//        }
+//        else if (eventType == Subscriber.EventType.REQUEST_ADD_OPENING || eventType == Subscriber.EventType.REQUEST_EDIT_OPENING || eventType == Subscriber.EventType.REQUEST_REMOVE_OPENING) {
+//            this.term = "job opening";
+//            this.eventTypeReturn = Subscriber.EventType.RETURN_ADD_OPENING;
+//        }
+//    }
     public void gatherMultipleInput(){
         for (int i = 0; i < allLabels.size(); i++) {
             if (allInputFields.get(i).getText() != null) {
@@ -292,7 +303,9 @@ public class PanelMaker {
     }
     private void gatherSingleInput(Subscriber.EventType eventType){
         String input = singleInputField.getText();
-        edit(input, eventType);
+        if (eventType == Subscriber.EventType.REQUEST_EDIT_SEEKER || eventType == Subscriber.EventType.REQUEST_EDIT_OPENING || eventType == Subscriber.EventType.REQUEST_REMOVE_SEEKER || eventType == Subscriber.EventType.REQUEST_REMOVE_OPENING){
+            handleSingleInput(input, eventType);
+        }
     }
     public String[] gatherEditedInput(){
         String[] previousUserInput = allUserinput;
@@ -310,7 +323,8 @@ public class PanelMaker {
             return null;
         }
     }
-    private JPanel getEduRow(){
+    private JPanel getEduRow(boolean edit, Object data){
+        System.out.println("getEduRow is reached, edit is: " + edit);
         JPanel eduRow = new JPanel();
         eduRow.setBorder(BorderFactory.createLineBorder(Colors.getBorderColor(), 5, true));
         eduRow.setBackground(Colors.getHeaderColor());
@@ -321,7 +335,11 @@ public class PanelMaker {
         promptEdu.setMinimumSize(new Dimension(270, 45));
         promptEdu.setFont(Fonts.getInputPromptFont());
         eduRow.add(promptEdu);
-        this.inputEdu = new JComboBox(EducationLevel.values());
+        this.inputEdu =
+                new JComboBox<>(EducationLevel.values());
+        if (edit){
+            inputEdu.setSelectedItem(getEduValue(data));
+        }
         inputEdu.setFont(Fonts.getButtonFont());
         inputEdu.setBackground(Color.WHITE);
         inputEdu.setBorder(BorderFactory.createLineBorder(Colors.getButtonBackgroundColor(), 3, true));
@@ -332,6 +350,17 @@ public class PanelMaker {
         }
         eduRow.add(inputEdu);
         return eduRow;
+    }
+    private EducationLevel getEduValue(Object data){
+        EducationLevel eduValue = null;
+        if(data instanceof JobSeeker jobSeeker){
+            eduValue = jobSeeker.getEducationLevel();
+        }
+        else if (data instanceof JobOpening jobOpening){
+            eduValue = jobOpening.getRequiredEducation();
+        }
+        System.out.println("eduvalue is: " + eduValue);
+        return eduValue;
     }
     private void sendUpdatedInfo(String [] newInfo) {
         if (data instanceof JobOpening opening) {
@@ -356,17 +385,17 @@ public class PanelMaker {
         JScrollPane scrollResults = new JScrollPane(displayingResult);
         scrollResults.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollResults.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        JTextArea headerText = new JTextArea(getHeaderTerm(eventType));
-        headerText.setEditable(false);
-        headerText.setBackground(Colors.getBackgroundColor());
-        headerText.setFont(Fonts.getHeaderFont());
-        headerText.setForeground(Colors.getHeaderColor());
+//        JTextArea headerText = new JTextArea(getHeaderTerm(eventType));
+//        headerText.setEditable(false);
+//        headerText.setBackground(Colors.getBackgroundColor());
+//        headerText.setFont(Fonts.getHeaderFont());
+//        headerText.setForeground(Colors.getHeaderColor());
         JPanel wrapperPanel = new JPanel();
         wrapperPanel.setBackground(Colors.getBackgroundColor());
         wrapperPanel.setBorder(
                 BorderFactory.createEmptyBorder(10, 40, 10, 40)
         );
-        wrapperPanel.add(headerText, BorderLayout.NORTH);
+//        wrapperPanel.add(headerText, BorderLayout.NORTH);
         wrapperPanel.add(scrollResults, BorderLayout.CENTER);
         System.out.println("wrapperPanel is returned from getOptionsPanel");
         wrapperPanel.setLayout(new BoxLayout(wrapperPanel, BoxLayout.Y_AXIS));
@@ -376,10 +405,13 @@ public class PanelMaker {
         return wrapperPanel;
     }
     private String getHeaderTerm(Subscriber.EventType eventType){
-        setTerms(eventType);
+        System.out.println("in getHeaderTerm, terms are: " + term + " " + imperativeActionTerm + " " + actionTerm) ;
         String headerTerm = "";
-        if(eventType == Subscriber.EventType.RETURN_FOUND_OPENINGS || eventType == Subscriber.EventType.RETURN_FOUND_SEEKERS){
+        if (eventType == Subscriber.EventType.RETURN_FOUND_OPENINGS || eventType == Subscriber.EventType.RETURN_FOUND_SEEKERS){
             headerTerm = "The following " + term + pluralNoun + " contain" + pluralVerb + " your search term:";
+        }
+        else if (eventType == Subscriber.EventType.REQUEST_EDIT_SEEKER || eventType == Subscriber.EventType.REQUEST_EDIT_OPENING || eventType == Subscriber.EventType.RETURN_REMOVE_OPENING || eventType == Subscriber.EventType.RETURN_REMOVE_SEEKER) {
+            headerTerm = "Input the " + promptTerm + " that you would like to " + imperativeActionTerm + ":";
         }
         return headerTerm;
     }
@@ -404,13 +436,13 @@ public class PanelMaker {
         }
     }
     JPanel getHeaderPanel(Subscriber.EventType eventType) {
-        String actionTerm = getActionTerm(eventType);
         JPanel headerPanel = new JPanel(new GridLayout(2,1));
         headerPanel.setBackground(Colors.getBackgroundColor());
         JLabel header = new JLabel(actionTerm + " " + term );
         header.setForeground(Colors.getHeaderColor());
         header.setFont(Fonts.getHeaderFont());
-        JTextArea prompt = new JTextArea("Input the " + promptTerm + " that you would like to edit:");
+        String promptText = getHeaderTerm(eventType);
+        JTextArea prompt = new JTextArea(promptText);
         prompt.setEditable(false);
         prompt.setFont(Fonts.getButtonFont());
         prompt.setForeground(Colors.getHeaderColor());
@@ -419,22 +451,20 @@ public class PanelMaker {
         headerPanel.add(prompt);
         return headerPanel;
     }
-    private String getActionTerm(Subscriber.EventType eventType){
-        String actionTerm = "";
+    private void setActionTerm(Subscriber.EventType eventType){
         switch (eventType){
             case REQUEST_ADD_OPENING, REQUEST_ADD_SEEKER -> {
-                actionTerm = "Adding ";
+                this.actionTerm = "Adding ";
             }
             case REQUEST_EDIT_OPENING, REQUEST_EDIT_SEEKER -> {
-            actionTerm = "Editing";
+                this.actionTerm = "Editing";
             }
-            case REQUEST_DELETE_OPENING, REQUEST_DELETE_SEEKER -> {
-                actionTerm = "Deleting";
+            case REQUEST_REMOVE_OPENING, REQUEST_REMOVE_SEEKER -> {
+                this.actionTerm = "Deleting";
             }
         }
-        return actionTerm;
     }
-    
+
     JPanel getSingleInputPanel(Subscriber.EventType eventType){
         System.out.println("getSingleInputPanel in PanelMaker is reached");
         JPanel inputPanel = new JPanel();
@@ -464,7 +494,7 @@ public class PanelMaker {
         this.singleInputPanel = inputPanel;
         return inputPanel;
     }
-//    private JButton getEditSubmitButton() {
+    //    private JButton getEditSubmitButton() {
 //        System.out.println();
 //        JButton submitButton = new JButton(" Submit ");
 //        submitButton.setFont(Fonts.getButtonFont());
@@ -553,32 +583,67 @@ public class PanelMaker {
         return result;
     }
     void setTerms(Subscriber.EventType eventType){
-        if (eventType == Subscriber.EventType.REQUEST_EDIT_SEEKER || eventType == Subscriber.EventType.RETURN_FOUND_SEEKERS){
+        System.out.println("setTerms in PanelMaker is reached, eventType is: " + eventType);
+        if (eventType == Subscriber.EventType.REQUEST_SEARCH_SEEKER || eventType == Subscriber.EventType.REQUEST_ADD_SEEKER || eventType == Subscriber.EventType.REQUEST_EDIT_SEEKER || eventType == Subscriber.EventType.RETURN_FOUND_SEEKERS || eventType == Subscriber.EventType.REQUEST_REMOVE_SEEKER || eventType == Subscriber.EventType.RETURN_REMOVE_SEEKER) {
             this.term = "job seeker";
             this.promptTerm = "name of the job seeker";
+            if (eventType == Subscriber.EventType.REQUEST_REMOVE_SEEKER) {
+                this.imperativeActionTerm = "delete";
+                this.actionTerm = "Deleting";
+            } else if (eventType == Subscriber.EventType.REQUEST_EDIT_SEEKER) {
+                this.imperativeActionTerm = "edit";
+                this.actionTerm = "Editing";
+            }
+            else if (eventType == Subscriber.EventType.REQUEST_ADD_SEEKER){
+                this.imperativeActionTerm = "add";
+                this.actionTerm = "Adding";
+            }
+            else if (eventType == Subscriber.EventType.REQUEST_SEARCH_SEEKER){
+                this.actionTerm = "Searching for";
+            }
         }
-        else if(eventType == Subscriber.EventType.REQUEST_EDIT_OPENING || eventType == Subscriber.EventType.RETURN_FOUND_OPENINGS) {
+        else if(eventType == Subscriber.EventType.REQUEST_SEARCH_OPENING || eventType == Subscriber.EventType.REQUEST_ADD_OPENING || eventType == Subscriber.EventType.REQUEST_EDIT_OPENING || eventType == Subscriber.EventType.RETURN_FOUND_OPENINGS || eventType == Subscriber.EventType.REQUEST_REMOVE_OPENING || eventType == Subscriber.EventType.RETURN_REMOVE_OPENING) {
             this.term = "job opening";
             this.promptTerm = "title of the job opening";
+            if (eventType == Subscriber.EventType.REQUEST_REMOVE_OPENING) {
+                this.imperativeActionTerm = "delete";
+                this.actionTerm = "deleting";
+            } else if (eventType == Subscriber.EventType.REQUEST_EDIT_OPENING) {
+                this.imperativeActionTerm = "edit";
+                this.actionTerm = "editing";
+            }
+            else if (eventType == Subscriber.EventType.REQUEST_ADD_OPENING) {
+                this.imperativeActionTerm = "add";
+                this.actionTerm = "adding";
+            }
+            else if (eventType == Subscriber.EventType.REQUEST_SEARCH_OPENING){
+                this.actionTerm = "Searching for";
+            }
         }
     }
 
-    private void edit(String seachTerm, Subscriber.EventType eventType){
+    private void handleSingleInput(String searchTerm, Subscriber.EventType eventType){
         System.out.println("___ edit in EditPanel was reached, eventType is: " + eventType);
-//        if (Objects.equals(seachTerm, "")){
-//            JOptionPane.showMessageDialog(null, "Type the term for what you would like to edit");
-//        }
-        if (eventType == Subscriber.EventType.REQUEST_EDIT_OPENING){
-            mainFrame.update(Subscriber.EventType.RETURN_EDITING_OPENING, seachTerm);
+        if (Objects.equals(searchTerm, "")) {
+            JOptionPane.showMessageDialog(null, "Type the term for what you would like to edit");
+        }
+        else if (eventType == Subscriber.EventType.REQUEST_EDIT_OPENING){
+            mainFrame.update(Subscriber.EventType.RETURN_EDITING_OPENING, searchTerm);
         }
         else if (eventType == Subscriber.EventType.REQUEST_EDIT_SEEKER){
-            mainFrame.update(Subscriber.EventType.RETURN_EDITING_SEEKER, seachTerm);
+            mainFrame.update(Subscriber.EventType.RETURN_EDITING_SEEKER, searchTerm);
+        }
+        else if (eventType == Subscriber.EventType.REQUEST_REMOVE_SEEKER) {
+            mainFrame.update(Subscriber.EventType.RETURN_REMOVE_SEEKER, searchTerm);
+        }
+        else if (eventType == Subscriber.EventType.REQUEST_REMOVE_OPENING) {
+            mainFrame.update(Subscriber.EventType.RETURN_REMOVE_OPENING, searchTerm);
         }
     }
     private void requestEditingPanel(Subscriber.EventType eventType, Object data){
         System.out.println("getEditingPanel in PanelMaker is reached");
         if (data instanceof JobSeeker){
-        mainFrame.showEditPanel(Subscriber.EventType.REQUEST_EDIT_FIELDS_SEEKER, data);
+            mainFrame.showEditPanel(Subscriber.EventType.REQUEST_EDIT_FIELDS_SEEKER, data);
         }
         else if (data instanceof JobOpening) {
             mainFrame.showEditPanel(Subscriber.EventType.REQUEST_EDIT_FIELDS_OPENING, data);
@@ -586,5 +651,8 @@ public class PanelMaker {
     }
     void setEditPanel(EditPanel editPanel){
         this.editPanel = editPanel;
+    }
+    void setRemovePanel(RemovePanel removePanel){
+        this.removePanel = removePanel;
     }
 }

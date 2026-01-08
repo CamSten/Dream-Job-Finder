@@ -80,8 +80,7 @@ public class ApplicationManager implements Subscriber {
                     mainFrame.showEditPanel(option, data);
                     waitingForEdit = false;
                 } else if (waitingForRemove) {
-                    mainFrame.showRemovePanel(option);
-                    waitingForRemove = false;
+                    executeDelete(data);
                 } else {
                     mainFrame.showResultPanel(option, data);
                 }
@@ -101,6 +100,7 @@ public class ApplicationManager implements Subscriber {
                 case REQUEST_EDIT_OPENING, REQUEST_EDIT_SEEKER -> {
                 mainFrame.showEditPanel(option, data);
             }
+
             case RETURN_EDITING_OPENING -> {
                 waitingForEdit = true;
                 String title = (String) data;
@@ -128,19 +128,25 @@ public class ApplicationManager implements Subscriber {
                     editSeeker(seeker, newInfo);
                 }
             }
-            case REQUEST_DELETE_OPENING, REQUEST_DELETE_SEEKER -> {
-                mainFrame.showRemovePanel(option);
+            case REQUEST_REMOVE_OPENING, REQUEST_REMOVE_SEEKER -> {
+                mainFrame.showRemovePanel(option, data);
             }
             case RETURN_REMOVE_SEEKER -> {
                 this.waitingForRemove = true;
-                matchingService.deleteSeeker((String) data);
+                String name = (String) data;
+                matchingService.findSeekersByName(name);
             }
             case RETURN_REMOVE_OPENING -> {
                 this.waitingForRemove = true;
-                matchingService.deleteJobOpening((String) data);
+                String title = (String) data;
+                matchingService.findJobOpeningsByTitle(title);
             }
-            case RETURN_ADD_SUCCESSFUL, RETURN_EDIT_SUCCESSFUL, RETURN_REMOVE_SUCCESSFUL -> {
+            case RETURN_ADD_SUCCESSFUL, RETURN_EDIT_SUCCESSFUL-> {
                 mainFrame.showResultPanel(option, data);
+            }
+            case RETURN_REMOVE_SUCCESSFUL, RETURN_REMOVE_NOT_SUCCESSFUL -> {
+                mainFrame.showRemovePanel(option, data);
+                waitingForRemove = false;
             }
         }
     }
@@ -233,6 +239,15 @@ public class ApplicationManager implements Subscriber {
         opening.setRequiredEducation(thisEdu);
         opening.setWorkArea(branch);
         matchingService.updateJobOpening(opening);
+    }
+    private void executeDelete(Object data){
+
+        if (data instanceof List list && list.getFirst() instanceof JobSeeker seeker){
+            matchingService.deleteSeeker(seeker.getId());
+        }
+        else if (data instanceof List list && list.getFirst() instanceof JobOpening opening){
+            matchingService.deleteJobOpening(opening.getId());
+        }
     }
 
     private void notifySubscribers(Subscriber.EventType e, Object data) {

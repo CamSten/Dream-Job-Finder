@@ -21,6 +21,7 @@ public class MainFrame extends JFrame implements Subscriber {
     private MatchPanel matchPanel;
     private ResultPanel resultPanel;
     private EditPanel editPanel;
+    private RemovePanel removePanel;
     public static Controller.ApplicationManager applicationManager;
     private PanelMaker panelMaker;
 
@@ -60,6 +61,7 @@ public class MainFrame extends JFrame implements Subscriber {
         adjustCenterPanel(menuPanel);
     }
     public void showSearchPanel(EventType eventType){
+        Object data = null;
         removeCenterPanelContent();
         if (searchPanel == null){
             this.searchPanel = new SearchPanel(this, eventType, panelMaker);
@@ -95,16 +97,11 @@ public class MainFrame extends JFrame implements Subscriber {
         adjustBottomPanel();
     }
     public void showResultPanel(EventType eventType, Object data){
-        System.out.println("SHOW RESULT PANEL IS REACHED");
+        System.out.println("SHOW RESULT PANEL IS REACHED, eventType is: " + eventType);
         removeCenterPanelContent();
-        if (resultPanel == null){
-            this.resultPanel = new ResultPanel(this, eventType, data);
+            resultPanel = new ResultPanel(this, eventType, data);
+            centerPanel.add(resultPanel, BorderLayout.CENTER);
             applicationManager.addSubscriber(resultPanel);
-        }
-        else {
-            resultPanel.checkInput(eventType, data);
-        }
-        centerPanel.add(resultPanel, BorderLayout.CENTER);
         adjustCenterPanel(resultPanel);
         adjustBottomPanel();
     }
@@ -143,8 +140,19 @@ public class MainFrame extends JFrame implements Subscriber {
         adjustCenterPanel(editPanel);
         adjustBottomPanel();
     }
-    public void showRemovePanel(EventType eventType){
-
+    public void showRemovePanel(EventType eventType, Object data){
+        System.out.println("showRemovePanel in MainFrame is reached");
+        removeCenterPanelContent();
+        if (removePanel == null){
+            this.editPanel = new EditPanel(this, eventType, data, panelMaker);
+            applicationManager.addSubscriber(editPanel);
+        }
+        else {
+            editPanel.showEditPanel(eventType, data);
+        }
+        centerPanel.add(editPanel, BorderLayout.CENTER);
+        adjustCenterPanel(editPanel);
+        adjustBottomPanel();
     }
 
     private void removeCenterPanelContent(){

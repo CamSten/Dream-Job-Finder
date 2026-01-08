@@ -20,7 +20,7 @@ public class EditPanel extends JPanel implements Subscriber{
         showEditPanel(eventType, data);
     }
     public void showEditPanel(EventType eventType, Object data){
-        panelMaker.setTerms(eventType);
+//        panelMaker.setTerms(eventType);
         setBackground(Colors.getBackgroundColor());
         if (centerPanel != null){
             centerPanel.removeAll();
@@ -31,8 +31,6 @@ public class EditPanel extends JPanel implements Subscriber{
             add(centerPanel);
         }
         JPanel panels = new JPanel();
-        JPanel headerPanel = panelMaker.getHeaderPanel(eventType);
-        centerPanel.add(headerPanel, BorderLayout.NORTH);
         panels = panelMaker.getPanels(eventType, data);
         System.out.println("panels are returned from panelMaker, in editPanel");
         centerPanel.add(panels, BorderLayout.CENTER);

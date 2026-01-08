@@ -32,7 +32,7 @@ public class AdderPanel extends JPanel implements Subscriber {
 
     public void showAdderPanel(EventType eventTypeRequest) {
         System.out.println("in showAdderPanel, eventType is: " + eventTypeRequest);
-        panelMaker.setTerm(eventTypeRequest);
+//        panelMaker.setTerm(eventTypeRequest);
         setLayout(new BorderLayout());
         setBackground(Colors.getBackgroundColor());
         setMinimumSize(new Dimension(550, 500));

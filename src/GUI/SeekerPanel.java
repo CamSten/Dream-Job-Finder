@@ -61,7 +61,7 @@ public class SeekerPanel extends JPanel implements Subscriber{
         optionEdit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                update(EventType.REQUEST_DELETE_SEEKER, null);
+                update(EventType.REQUEST_REMOVE_SEEKER, null);
             }
         });
 

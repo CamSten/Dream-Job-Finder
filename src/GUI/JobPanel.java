@@ -61,7 +61,7 @@ public class JobPanel extends JPanel implements Subscriber {
         optionEdit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                update(EventType.REQUEST_DELETE_OPENING, null);
+                update(EventType.REQUEST_REMOVE_OPENING, null);
             }
         });
 
