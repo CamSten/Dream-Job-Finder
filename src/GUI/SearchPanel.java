@@ -15,6 +15,7 @@ public class SearchPanel extends JPanel implements Subscriber{
         this.mainFrame = mainFrame;
         this.eventType = eventType;
         this.panelMaker = panelMaker;
+        showSearchPanel(eventType);
     }
     public void showSearchPanel(EventType eventType){
         setBackground(Colors.getBackgroundColor());

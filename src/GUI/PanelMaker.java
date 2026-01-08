@@ -280,7 +280,7 @@ public class PanelMaker {
     private boolean getIsEditing(Subscriber.EventType eventType){
         return eventType == Subscriber.EventType.REQUEST_EDIT_FIELDS_SEEKER || eventType == Subscriber.EventType.REQUEST_EDIT_FIELDS_OPENING;
     }
-//    public void setTerm(Subscriber.EventType eventType){
+    //    public void setTerm(Subscriber.EventType eventType){
 //        if (eventType == Subscriber.EventType.REQUEST_ADD_SEEKER || eventType == Subscriber.EventType.REQUEST_EDIT_SEEKER || eventType == Subscriber.EventType.REQUEST_REMOVE_SEEKER) {
 //            this.term = "job seeker";
 //            this.eventTypeReturn = Subscriber.EventType.RETURN_ADD_SEEKER;
@@ -303,9 +303,7 @@ public class PanelMaker {
     }
     private void gatherSingleInput(Subscriber.EventType eventType){
         String input = singleInputField.getText();
-        if (eventType == Subscriber.EventType.REQUEST_EDIT_SEEKER || eventType == Subscriber.EventType.REQUEST_EDIT_OPENING || eventType == Subscriber.EventType.REQUEST_REMOVE_SEEKER || eventType == Subscriber.EventType.REQUEST_REMOVE_OPENING){
-            handleSingleInput(input, eventType);
-        }
+        handleSingleInput(input, eventType);
     }
     public String[] gatherEditedInput(){
         String[] previousUserInput = allUserinput;
@@ -623,9 +621,15 @@ public class PanelMaker {
     }
 
     private void handleSingleInput(String searchTerm, Subscriber.EventType eventType){
-        System.out.println("___ edit in EditPanel was reached, eventType is: " + eventType);
+        System.out.println("handleSingleInput in panelMaker is reached. EventType is: " + eventType);
         if (Objects.equals(searchTerm, "")) {
             JOptionPane.showMessageDialog(null, "Type the term for what you would like to edit");
+        }
+        else if (eventType == Subscriber.EventType.REQUEST_SEARCH_OPENING) {
+            mainFrame.update(Subscriber.EventType.RETURN_SEARCH_OPENING, searchTerm);
+        }
+        else if (eventType == Subscriber.EventType.REQUEST_SEARCH_SEEKER){
+            mainFrame.update(Subscriber.EventType.RETURN_SEARCH_SEEKER, searchTerm);
         }
         else if (eventType == Subscriber.EventType.REQUEST_EDIT_OPENING){
             mainFrame.update(Subscriber.EventType.RETURN_EDITING_OPENING, searchTerm);

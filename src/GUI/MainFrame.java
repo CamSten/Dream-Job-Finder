@@ -61,7 +61,6 @@ public class MainFrame extends JFrame implements Subscriber {
         adjustCenterPanel(menuPanel);
     }
     public void showSearchPanel(EventType eventType){
-        Object data = null;
         removeCenterPanelContent();
         if (searchPanel == null){
             this.searchPanel = new SearchPanel(this, eventType, panelMaker);

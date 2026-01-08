@@ -7,7 +7,7 @@
 8006;Cami2;MASTER;50;Hockey
 8284;Tjalol;BACHELOR;27;Cooking
 2728;Tjenixen;PHD;29;Television
-5595;Beeboo;BACHELOR;15;Supervising
+5595;Beeboo;BACHELOR;9;Supervising
 4350;Beebs;BACHELOR;19;Astronomy
 3838;Namnsson;MASTER;23;Agriculture
 9051;John Doe;MASTER;55;Football
