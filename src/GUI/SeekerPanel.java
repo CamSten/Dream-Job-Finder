@@ -48,20 +48,28 @@ public class SeekerPanel extends JPanel implements Subscriber{
                 update(EventType.REQUEST_SEARCH_SEEKER, null);
             }
         });
-        JButton optionMatch = new JButton("Edit job seeker");
-        allOptionButtons.add(optionMatch);
-        optionMatch.addActionListener(new ActionListener() {
+        JButton optionEdit = new JButton("Edit job seeker");
+        allOptionButtons.add(optionEdit);
+        optionEdit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 update(EventType.REQUEST_EDIT_SEEKER, null);
             }
         });
-        JButton optionEdit = new JButton("Delete job seeker");
-        allOptionButtons.add(optionEdit);
-        optionEdit.addActionListener(new ActionListener() {
+        JButton optionDelete = new JButton("Delete job seeker");
+        allOptionButtons.add(optionDelete);
+        optionDelete.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 update(EventType.REQUEST_REMOVE_SEEKER, null);
+            }
+        });
+        JButton optionMatch = new JButton("Match job seeker to jobs");
+        allOptionButtons.add(optionMatch);
+        optionMatch.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                update(EventType.REQUEST_MATCH_SEEKER, null);
             }
         });
 

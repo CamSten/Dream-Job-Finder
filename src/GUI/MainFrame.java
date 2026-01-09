@@ -90,7 +90,7 @@ public class MainFrame extends JFrame implements Subscriber {
     public void showMatchPanel(){
         removeCenterPanelContent();
         if (matchPanel == null){
-            this.matchPanel = new MatchPanel(this);
+            this.matchPanel = new MatchPanel(this, panelMaker);
         }
         applicationManager.addSubscriber(matchPanel);
         centerPanel.add(matchPanel, BorderLayout.CENTER);

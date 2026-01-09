@@ -55,15 +55,6 @@ public class MenuPanel extends JPanel implements Subscriber{
 //                update(EventType.REQUEST_SEARCH, null);
 //            }
 //        });
-        JButton optionMatch = new JButton("Match");
-        allOptionButtons.add(optionMatch);
-        optionMatch.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                update(EventType.REQUEST_MATCH, null);
-            }
-        });
-
         JPanel menuButtons = new JPanel();
         menuButtons.setBackground(Colors.getButtonBackgroundColor());
         menuButtons.setOpaque(true);

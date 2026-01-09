@@ -85,7 +85,7 @@ public class ApplicationManager implements Subscriber {
                     mainFrame.showResultPanel(option, data);
                 }
             }
-            case REQUEST_MATCH -> {
+            case REQUEST_MATCH_OPENING, REQUEST_MATCH_SEEKER -> {
                 mainFrame.showMatchPanel();
             }
             case RETURN_ADD_SEEKER -> {
