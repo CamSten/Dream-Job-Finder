@@ -17,10 +17,9 @@ public class EditPanel extends JPanel implements Subscriber{
         this.mainFrame = mainFrame;
         this.eventType = eventType;
         this.panelMaker = panelMaker;
-        showEditPanel(eventType, data);
     }
     public void showEditPanel(EventType eventType, Object data){
-//        panelMaker.setTerms(eventType);
+        System.out.println("showEditPanel is reached");
         setBackground(Colors.getBackgroundColor());
         if (centerPanel != null){
             centerPanel.removeAll();
@@ -38,19 +37,6 @@ public class EditPanel extends JPanel implements Subscriber{
         repaint();
         revalidate();
     }
-    public void addMultipleInputFields(EventType eventType, Object data){
-        showEditPanel(eventType, data);
-    }
-
-    // if (eventType == Subscriber.EventType.RETURN_FOUND_THIS_SEEKER || eventType == Subscriber.EventType.RETURN_FOUND_THIS_OPENING){
-    //            submitWrapper.setVisible(false);
-    //        }
-    //        else {
-    //            submitWrapper.setVisible(true);
-    //        }
-
-
-
 
     @Override
     public void update(EventType option, Object data) {

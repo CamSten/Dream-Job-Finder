@@ -63,22 +63,7 @@ public class MenuPanel extends JPanel implements Subscriber{
                 update(EventType.REQUEST_MATCH, null);
             }
         });
-//        JButton optionEdit = new JButton("Edit");
-//        allOptionButtons.add(optionEdit);
-//        optionEdit.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                update(EventType.REQUEST_EDIT, null);
-//            }
-//        });
-//        JButton optionRemove = new JButton("Remove");
-//        allOptionButtons.add(optionRemove);
-//        optionRemove.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                update(EventType.REQUEST_REMOVE, null);
-//            }
-//        });
+
         JPanel menuButtons = new JPanel();
         menuButtons.setBackground(Colors.getButtonBackgroundColor());
         menuButtons.setOpaque(true);

@@ -1,6 +1,8 @@
 package GUI;
 
 import Controller.ApplicationManager;
+import model.JobOpening;
+import model.JobSeeker;
 
 import javax.swing.*;
 import java.awt.*;
@@ -125,16 +127,20 @@ public class MainFrame extends JFrame implements Subscriber {
         adjustBottomPanel();
     }
 
-    public void showEditPanel(EventType eventType, Object data){
+    public void showEditPanel(Subscriber.EventType eventType, Object data){
         System.out.println("showEditPanel in MainFrame is reached");
         removeCenterPanelContent();
-        if (editPanel == null){
+        if (eventType == EventType.RETURN_OPTIONS){
+            if (data instanceof List list && list.getFirst() instanceof JobSeeker){
+                eventType.setSubject(EventType.Subject.SEEKER);
+            }
+            else {
+                eventType.setSubject(EventType.Subject.OPENING);
+            }
+        }
             this.editPanel = new EditPanel(this, eventType, data, panelMaker);
             applicationManager.addSubscriber(editPanel);
-        }
-        else {
-            editPanel.showEditPanel(eventType, data);
-        }
+        editPanel.showEditPanel(eventType, data);
         centerPanel.add(editPanel, BorderLayout.CENTER);
         adjustCenterPanel(editPanel);
         adjustBottomPanel();
@@ -143,14 +149,14 @@ public class MainFrame extends JFrame implements Subscriber {
         System.out.println("showRemovePanel in MainFrame is reached");
         removeCenterPanelContent();
         if (removePanel == null){
-            this.editPanel = new EditPanel(this, eventType, data, panelMaker);
-            applicationManager.addSubscriber(editPanel);
+            this.removePanel = new RemovePanel(this, panelMaker, eventType, data);
+            applicationManager.addSubscriber(removePanel);
         }
         else {
-            editPanel.showEditPanel(eventType, data);
+            removePanel.showRemovePanel(eventType, data);
         }
-        centerPanel.add(editPanel, BorderLayout.CENTER);
-        adjustCenterPanel(editPanel);
+        centerPanel.add(removePanel, BorderLayout.CENTER);
+        adjustCenterPanel(removePanel);
         adjustBottomPanel();
     }
 
@@ -190,8 +196,60 @@ public class MainFrame extends JFrame implements Subscriber {
         revalidate();
         pack();
     }
-    public void update(EventType option, Object data) {
-        System.out.println("--------- update in MainFrame is: " + option);
-        applicationManager.update(option, data);
+    public void update(Subscriber.EventType eventType, Object data) {
+        System.out.println("update in MainFrame is reached. EventType is: " + eventType);
+        Subscriber.EventType returnEventType = eventType;
+        boolean relay = false;
+        if (eventType.getAction() == EventType.Action.VIEW && eventType.getQuantity() == EventType.Quantity.NONE){
+            if (eventType.getSubject() == EventType.Subject.OPENING){
+                showJobPanel();
+            }
+            else if (eventType.getSubject() == EventType.Subject.SEEKER){
+                showSeekerPanel();
+            }
+        }
+        else if (eventType == Subscriber.EventType.REQUEST_SEARCH_OPENING || eventType == Subscriber.EventType.REQUEST_SEARCH_SEEKER) {
+            showSearchPanel(eventType);
+        }
+        else if (eventType == Subscriber.EventType.REQUEST_EDIT_OPENING || eventType == Subscriber.EventType.REQUEST_EDIT_SEEKER){
+        System.out.println("in mainFram requestEdit, status is: " + eventType.getStatus());
+            if (data != null){
+            relay = true;
+            returnEventType = getEditSubject(eventType);
+            }
+            else{
+                showEditPanel(eventType, data);
+            }
+        }
+        else if (eventType == Subscriber.EventType.REQUEST_REMOVE_SEEKER) {
+            relay = true;
+            if (eventType.getStatus() == EventType.Status.HAS_INPUT){
+                returnEventType = EventType.RETURN_REMOVE_SEEKER;
+            }
+        }
+        else if (eventType == Subscriber.EventType.REQUEST_REMOVE_OPENING) {
+            relay = true;
+            if (eventType.getStatus() == EventType.Status.HAS_INPUT){
+                returnEventType = EventType.RETURN_REMOVE_OPENING;
+            }
+        }
+        else {
+            relay = true;
+        }
+        if (relay){
+            relayUpdate(returnEventType, data);
+        }
+    }
+    private EventType getEditSubject(EventType eventType){
+        if (eventType.getSubject() == EventType.Subject.OPENING){
+            return EventType.RETURN_EDITING_OPENING;
+        }
+        else {
+            return EventType.RETURN_EDITING_SEEKER;
+        }
+    }
+    private void relayUpdate(Subscriber.EventType eventType, Object data){
+        System.out.println("in relayUpdate, eventType is: " + eventType );
+        applicationManager.update(eventType, data);
     }
 }

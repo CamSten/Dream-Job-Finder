@@ -97,10 +97,10 @@ public class JobSeeker implements Serializable {
         return id + ";" + name + ";" + educationLevel.name() + ";" + yearsExperience + ";" + workArea;
     }
     public String printout(){
-        return "ID: " + id + "\nTitle: " + name + "\nEducation level: " + educationLevel + "\nYears of experience: " + yearsExperience + "\nWork area: " + workArea;
+        return "ID: " + id + "\nTitle: " + name + "\nYears of experience: " + yearsExperience + "\nWork area: " + workArea + "\nEducation level: " + educationLevel;
     }
     public String printoutWithoutName(){
-        return "ID: " + id + "\nEducation level: " + educationLevel + "\nYears of experience: " + yearsExperience + "\nWork area: " + workArea;
+        return "ID: " + id  + "\nYears of experience: " + yearsExperience + "\nWork area: " + workArea + "\nEducation level: " + educationLevel;
 
     }
 

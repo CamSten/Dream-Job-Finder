@@ -76,11 +76,11 @@ public class ApplicationManager implements Subscriber {
                 matchingService.findJobOpeningsByTitle(title);
             }
             case RETURN_SEEKER_NOT_FOUND, RETURN_OPENING_NOT_FOUND, RETURN_FOUND_OPENINGS, RETURN_FOUND_SEEKERS -> {
-                if (waitingForEdit) {
-                    mainFrame.showEditPanel(option, data);
+                if (waitingForEdit || waitingForRemove) {
+                    mainFrame.showEditPanel(EventType.RETURN_OPTIONS, data);
                     waitingForEdit = false;
                 } else if (waitingForRemove) {
-                    executeDelete(data);
+//                    executeDelete(data);
                 } else {
                     mainFrame.showResultPanel(option, data);
                 }
@@ -98,9 +98,12 @@ public class ApplicationManager implements Subscriber {
                 matchingService.addJobOpening(newOpening);
             }
                 case REQUEST_EDIT_OPENING, REQUEST_EDIT_SEEKER -> {
-                mainFrame.showEditPanel(option, data);
-            }
+                    if (option.getStatus() == EventType.Status.HAS_INPUT) {
 
+                    } else {
+                        mainFrame.showEditPanel(option, data);
+                    }
+                }
             case RETURN_EDITING_OPENING -> {
                 waitingForEdit = true;
                 String title = (String) data;
@@ -134,6 +137,7 @@ public class ApplicationManager implements Subscriber {
             case RETURN_REMOVE_SEEKER -> {
                 this.waitingForRemove = true;
                 String name = (String) data;
+                System.out.println("name is: " + name);
                 matchingService.findSeekersByName(name);
             }
             case RETURN_REMOVE_OPENING -> {
@@ -145,7 +149,7 @@ public class ApplicationManager implements Subscriber {
                 mainFrame.showResultPanel(option, data);
             }
             case RETURN_REMOVE_SUCCESSFUL, RETURN_REMOVE_NOT_SUCCESSFUL -> {
-                mainFrame.showRemovePanel(option, data);
+                mainFrame.showResultPanel(option, data);
                 waitingForRemove = false;
             }
         }
@@ -194,6 +198,7 @@ public class ApplicationManager implements Subscriber {
         return new JobOpening(title, thisEdu, thisExp, branch);
     }
     private void editSeeker(JobSeeker seeker, String[]newInfo){
+        System.out.println("editSeeker is reached in ApplicationManager");
         String name = newInfo[0];
         String experience = newInfo[1];
         String branch = newInfo[2];
