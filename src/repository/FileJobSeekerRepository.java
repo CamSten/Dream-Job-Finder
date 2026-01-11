@@ -26,6 +26,7 @@ public class FileJobSeekerRepository extends FileRepository<JobSeeker> implement
         return seeker.toDataString();
     }
 
+    //Finds a seeker by name
     @Override
     public List<JobSeeker> findByName(String name) {
         List<JobSeeker> found = new ArrayList<>();

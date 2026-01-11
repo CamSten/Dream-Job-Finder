@@ -1,7 +1,5 @@
 package repository;
 
-import model.JobOpening;
-
 import java.io.*;
 import java.util.*;
 
@@ -14,7 +12,7 @@ public abstract class FileRepository<T> {
         ensureFileExists();
     }
 
-    // checks if file exists so we dont get error
+    // checks if file exists so we don't get an error
     private void ensureFileExists() {
         try {
             File file = new File(filePath);
@@ -25,6 +23,13 @@ public abstract class FileRepository<T> {
             e.printStackTrace();
         }
     }
+
+    //some helper methods for use cases that requires a specific object type
+    protected abstract String getId(T object);
+
+    protected abstract T fromDataString(String line);
+
+    protected abstract String toDataString(T object);
 
     // reads everything from the file and returns a list
     public List<T> findAll() {
@@ -64,6 +69,7 @@ public abstract class FileRepository<T> {
         writeAll(all);
     }
 
+    //Finds an object by id
     public Optional<T> findById(String id) {
         return findAll().stream()
                 .filter(object -> getId(object).equals(id))
@@ -98,10 +104,4 @@ public abstract class FileRepository<T> {
             System.err.println("Could not write file: " + e.getMessage());
         }
     }
-
-    protected abstract String getId(T object);
-
-    protected abstract T fromDataString(String line);
-
-    protected abstract String toDataString(T object);
 }

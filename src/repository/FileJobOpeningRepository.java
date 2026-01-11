@@ -26,6 +26,7 @@ public class FileJobOpeningRepository extends FileRepository<JobOpening> impleme
         return job.toDataString();
     }
 
+    //Finds an opening by title
     @Override
     public List<JobOpening> findByTitle(String title) {
         List<JobOpening> found = new ArrayList<>();
