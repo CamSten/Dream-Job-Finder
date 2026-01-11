@@ -1,5 +1,7 @@
 package GUI;
 
+import Controller.Event;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -9,14 +11,19 @@ import java.util.List;
 
 public class JobPanel extends JPanel implements Subscriber {
     private MainFrame mainFrame;
+    private Event event;
+    private PanelDecorator decorator;
     private JPanel centerPanel;
     private List<JButton> allOptionButtons = new ArrayList<>();
 
-    public JobPanel(MainFrame mainFrame) {
+    public JobPanel(MainFrame mainFrame, Event event, PanelDecorator decorator) {
         this.mainFrame = mainFrame;
+        this.event = event;
+        this.decorator = decorator;
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setMinimumSize(new Dimension(550, 500));
         setBackground(Colors.getBackgroundColor());
+        HeaderPanel headerPanel = new HeaderPanel(decorator, event);
         if (centerPanel == null){
             this.centerPanel = new JPanel();
         }
@@ -29,7 +36,7 @@ public class JobPanel extends JPanel implements Subscriber {
         optionAddSeeker.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                update(EventType.REQUEST_SEE_OPENING_LIST, null);
+                Update(Event.submit(Event.Action.VIEW, Event.Subject.OPENING, null, null));
             }
         });
         JButton optionAddOpening = new JButton("Add new job opening");
@@ -37,7 +44,7 @@ public class JobPanel extends JPanel implements Subscriber {
         optionAddOpening.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                update(EventType.REQUEST_ADD_OPENING, null);
+                Update(Event.submit(Event.Action.ADD, Event.Subject.OPENING, null, null));
             }
         });
         JButton optionSearch = new JButton("Find job opening by title");
@@ -45,7 +52,7 @@ public class JobPanel extends JPanel implements Subscriber {
         optionSearch.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                update(EventType.REQUEST_SEARCH_OPENING, null);
+                Update(Event.submit(Event.Action.SEARCH, Event.Subject.OPENING, null, null));
             }
         });
         JButton optionEdit = new JButton("Edit job opening");
@@ -53,7 +60,7 @@ public class JobPanel extends JPanel implements Subscriber {
         optionEdit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                update(EventType.REQUEST_EDIT_OPENING, null);
+                Update(Event.submit(Event.Action.EDIT, Event.Subject.OPENING, null, null));
             }
         });
         JButton optionDelete = new JButton("Delete job opening");
@@ -61,7 +68,7 @@ public class JobPanel extends JPanel implements Subscriber {
         optionDelete.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                update(EventType.REQUEST_REMOVE_OPENING, null);
+                Update(Event.submit(Event.Action.REMOVE, Event.Subject.OPENING, null, null));
             }
         });
 
@@ -70,7 +77,7 @@ public class JobPanel extends JPanel implements Subscriber {
         optionMatch.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                update(EventType.REQUEST_MATCH_OPENING, null);
+                Update(Event.submit(Event.Action.MATCH, Event.Subject.OPENING, null, null));
             }
         });
 
@@ -107,6 +114,8 @@ public class JobPanel extends JPanel implements Subscriber {
         buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
         buttonPanel.add(menuButtons);
         add(Box.createHorizontalGlue());
+        add(headerPanel);
+        add(Box.createHorizontalGlue());
         add(buttonPanel);
         add(Box.createHorizontalGlue());
         setVisible(true);
@@ -116,7 +125,7 @@ public class JobPanel extends JPanel implements Subscriber {
     }
 
     @Override
-    public void update(EventType option, Object data) {
-        mainFrame.update(option, data);
+    public void Update(Controller.Event event) {
+        mainFrame.Update(event);
     }
 }

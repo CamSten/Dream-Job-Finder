@@ -16,4 +16,5 @@ public interface JobOpeningRepository {
     List<JobOpening> findByTitle(String title);
 
     void delete(String id);
+
 }

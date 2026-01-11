@@ -1,6 +1,7 @@
 package service;
 
 import Controller.ApplicationManager;
+import Controller.Event;
 import GUI.Subscriber;
 import model.JobOpening;
 import model.JobSeeker;
@@ -13,9 +14,7 @@ import strategy.MatchingStrategy;
 import strategy.MatchingStrategyFactory;
 import strategy.StrategyType;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -25,16 +24,20 @@ public class MatchingService {
 
     private final JobSeekerRepository seekerRepo;
     private final JobOpeningRepository openingRepo;
-
+    private Event event;
+    private Event.Action action;
+    private Event.Subject subject;
+    private Event.Phase phase;
 
     // Wrapper methods for CLI
-    public List<JobSeeker> getAllSeekers() {
-        System.out.println("getAllSeekers in MatchingService was reached");
-        return seekerRepo.findAll();
+    public void getAllSeekers() {
+        List<JobSeeker> allJobSeekers = seekerRepo.findAll();
+        returnResult(Event.Outcome.OK, allJobSeekers, phase);
     }
 
-    public List<JobOpening> getAllJobOpenings() {
-        return openingRepo.findAll();
+    public void  getAllJobOpenings() {
+        List<JobOpening> allJobOpenings = openingRepo.findAll();
+        returnResult(Event.Outcome.OK, allJobOpenings, phase);
     }
 
     public void addSeeker(JobSeeker seeker) {
@@ -47,42 +50,40 @@ public class MatchingService {
 
     public void findSeekersByName(String name) {
         List<JobSeeker> results = seekerRepo.findByName(name);
+        Event.Outcome outcome = Event.Outcome.OK;
         if (results.isEmpty()){
-            applicationManager.update(Subscriber.EventType.RETURN_SEEKER_NOT_FOUND, null);
+            outcome = Event.Outcome.NOT_FOUND;
         }
-        else {
-            applicationManager.update(Subscriber.EventType.RETURN_FOUND_SEEKERS, results);
-        }
+        returnResult( outcome, results, Event.Phase.DISPLAY);
     }
 
     public void updateSeeker(JobSeeker seeker) {
         seekerRepo.update(seeker);
-        applicationManager.update(Subscriber.EventType.RETURN_EDIT_SUCCESSFUL, seeker);
+        returnResult(Event.Outcome.OK, seeker, Event.Phase.COMPLETE);
     }
 
     public void deleteSeeker(String id) {
         seekerRepo.delete(id);
-        applicationManager.update(Subscriber.EventType.RETURN_REMOVE_SUCCESSFUL, id);
+        returnResult(Event.Outcome.OK, id, Event.Phase.COMPLETE);
     }
 
     public void findJobOpeningsByTitle(String title) {
         List<JobOpening> results = openingRepo.findByTitle(title);
+        Event.Outcome outcome = Event.Outcome.OK;
         if (results.isEmpty()){
-            applicationManager.update(Subscriber.EventType.RETURN_OPENING_NOT_FOUND, null);
+            outcome = Event.Outcome.NOT_FOUND;
         }
-        else {
-            applicationManager.update(Subscriber.EventType.RETURN_FOUND_OPENINGS, results);
-        }
+        returnResult(outcome, results, Event.Phase.DISPLAY);
     }
 
     public void updateJobOpening(JobOpening opening) {
         openingRepo.update(opening);
-        applicationManager.update(Subscriber.EventType.RETURN_EDIT_SUCCESSFUL, opening);
+        returnResult(Event.Outcome.OK, opening.getTitle(), Event.Phase.COMPLETE);
     }
 
     public void deleteJobOpening(String id) {
         openingRepo.delete(id);
-        applicationManager.update(Subscriber.EventType.RETURN_REMOVE_SUCCESSFUL, id);
+    returnResult(Event.Outcome.OK, id, Event.Phase.COMPLETE);
     }
 
     public MatchingService(JobSeekerRepository seekerRepo, JobOpeningRepository openingRepo, ApplicationManager applicationManager) {
@@ -92,12 +93,11 @@ public class MatchingService {
     }
 
     // Matches all candidates to a specific job opening
-    public List<MatchResult> matchCandidatesToJob(String jobOpeningId, StrategyType strategyType) {
+    public void matchCandidatesToJob(String jobOpeningId, StrategyType strategyType) {
         // 1. Get the job opening
         JobOpening job = openingRepo.findById(jobOpeningId).orElse(null);
         if (job == null) {
             System.err.println("Job Opening not found: " + jobOpeningId);
-            return new ArrayList<>();
         }
 
         // 2. Get all candidates
@@ -116,16 +116,27 @@ public class MatchingService {
         // 5. Sort by score (highest first)
         results.sort(Comparator.comparingInt(MatchResult::getScore).reversed());
 
-        return results;
+        System.out.println("          results.size is" + results.size());
+        if (!results.isEmpty()) {
+            Event.Outcome outcome = Event.Outcome.OK;
+            saveMatchReport(results, jobOpeningId+".txt");
+            List<String> report = getMatchReport(jobOpeningId+".txt");
+            returnResult(outcome, report, Event.Phase.MATCH_RESULT);
+        }
+        else {
+            Event.Outcome outcome = Event.Outcome.NOT_FOUND;
+            returnResult(outcome, results, Event.Phase.MATCH_RESULT);
+        }
+
     }
 
     // Matches a candidate to all job openings
-    public List<MatchResult> matchJobsToCandidate(String jobSeekerId, StrategyType strategyType) {
+    public void matchJobsToCandidate(String jobSeekerId, StrategyType strategyType) {
+        System.out.println("matchJobstocandidate is reached");
         // 1. Get the job seeker
         JobSeeker seeker = seekerRepo.findById(jobSeekerId).orElse(null);
         if (seeker == null) {
             System.err.println("Job Seeker not found: " + jobSeekerId);
-            return new ArrayList<>();
         }
 
         // 2. Get all job openings
@@ -139,13 +150,28 @@ public class MatchingService {
         for (JobOpening opening : openings) {
             // Note: Strategy match expects (seeker, opening) order
             MatchResult result = strategy.match(seeker, opening);
-            results.add(result);
+            if (result != null) {
+                results.add(result);
+            }
         }
 
         // 5. Sort by score (highest first)
-        results.sort(Comparator.comparingInt(MatchResult::getScore).reversed());
+        System.out.println("results.size is: " + results.size());
+        if (results.isEmpty()) {
+            Event.Outcome outcome = Event.Outcome.NOT_FOUND;
+            returnResult(outcome, results, Event.Phase.MATCH_RESULT);
+        }
+        else {
+            if(results.size() > 1) {
+                results.sort(Comparator.comparingInt(MatchResult::getScore).reversed());
+            }
+            Event.Outcome outcome = Event.Outcome.OK;
+            saveMatchReport(results, jobSeekerId+".txt");
+            getMatchReport(jobSeekerId+".txt");
+            List<String> report = getMatchReport(jobSeekerId+".txt");
+            returnResult(outcome, report, Event.Phase.MATCH_RESULT);
+        }
 
-        return results;
     }
 
     // saves the match results to a file for reporting
@@ -162,6 +188,117 @@ public class MatchingService {
         } catch (IOException e) {
             System.err.println("Error saving report: " + e.getMessage());
         }
+    }
+    public List<String> getMatchReport(String filename){
+        List<String> report = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.trim().isEmpty()) {
+                    report.add(line);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Could not read file: " + e.getMessage());
+        }
+        return report;
+    }
+
+    public void Update(Event event){
+        this.event = event;
+        System.out.println("UPDATE in MatchingService was reached");
+        this.action = event.getAction();
+        this.subject = event.getSubject();
+        this.phase = event.getPhase();
+        switch (event.getAction()){
+            case VIEW -> {
+                if (subject == Event.Subject.SEEKER){
+                    getAllSeekers();
+                }
+                else if (subject == Event.Subject.OPENING) {
+                    getAllJobOpenings();
+                }
+            }
+            case SEARCH -> {
+                String name = (String) event.getContents();
+                if (subject == Event.Subject.SEEKER){
+                    findSeekersByName(name);
+                }
+                else if (subject == Event.Subject.OPENING) {
+                    findJobOpeningsByTitle(name);
+                }
+            }
+            case EDIT -> {
+                if (event.getExtraContents() == null) {
+                    String name = (String) event.getContents();
+                            if (event.getSubject() == Event.Subject.SEEKER) {
+                                findSeekersByName(name);
+                            }
+                            else if (event.getSubject() == Event.Subject.OPENING){
+                                findJobOpeningsByTitle(name);
+                            }
+                } else {
+                    if (subject == Event.Subject.SEEKER) {
+                        JobSeeker jobSeeker = (JobSeeker) event.getContents();
+                        updateSeeker(jobSeeker);
+                    } else if (subject == Event.Subject.OPENING) {
+                        JobOpening jobOpening = (JobOpening) event.getContents();
+                        updateJobOpening(jobOpening);
+                    }
+                }
+            }
+            case ADD -> {
+                if (subject == Event.Subject.SEEKER){
+                    JobSeeker jobSeeker = (JobSeeker) event.getContents();
+                    addSeeker(jobSeeker);
+                }
+                else if (subject == Event.Subject.OPENING) {
+                    JobOpening jobOpening = (JobOpening) event.getContents();
+                    addJobOpening(jobOpening);
+                }
+            }
+            case REMOVE -> {
+                String ID = (String) event.getContents();
+                if (subject == Event.Subject.SEEKER){
+                    deleteSeeker(ID);
+                }
+                else if (subject == Event.Subject.OPENING) {
+                    deleteJobOpening(ID);
+                }
+            }
+            case MATCH -> {
+                switch (event.getPhase()){
+                    case MATCH_ENTER_TERM -> {
+                        String name = (String) event.getContents();
+                        if (event.getSubject() == Event.Subject.SEEKER){
+                            findSeekersByName(name);
+                        }
+                        else if (event.getSubject() == Event.Subject.OPENING){
+                            findJobOpeningsByTitle(name);
+                        }
+                    }
+                    case MATCH_STRATEGY_SELECTED -> {
+                        StrategyType strategy = (StrategyType) event.getExtraContents();
+                        System.out.println("in MatchingService, strategy is: " + strategy);
+                        if (event.getSubject() == Event.Subject.SEEKER){
+                            JobSeeker seeker = (JobSeeker) event.getContents();
+                            matchJobsToCandidate(seeker.getId(), strategy);
+                        }
+                        else if (event.getSubject() == Event.Subject.OPENING){
+                            JobOpening opening = (JobOpening) event.getContents();
+                          matchCandidatesToJob(opening.getId(), strategy);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    private void returnResult(Event.Outcome newoutcome, Object content, Event.Phase newphase){
+        Event.Origin origin = Event.Origin.LOGIC;
+        if (event.getPhase() == Event.Phase.MATCH_ENTER_TERM){
+            newphase = Event.Phase.MATCH_TERM_SUBMITTED;
+        }
+        applicationManager.Update(new Event(newphase, action, subject, origin, newoutcome, content, null));
     }
 
 }

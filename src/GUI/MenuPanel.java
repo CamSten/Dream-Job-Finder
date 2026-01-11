@@ -1,5 +1,8 @@
 package GUI;
 
+import Controller.Event;
+import strategy.StrategyType;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -9,52 +12,29 @@ import java.util.List;
 
 public class MenuPanel extends JPanel implements Subscriber{
     private MainFrame mainFrame;
+    private Event event;
     private List<JButton> allOptionButtons = new ArrayList<>();
+    private String term;
 
-    public MenuPanel(MainFrame mainFrame){
+    public MenuPanel(MainFrame mainFrame, Event event){
         this.mainFrame = mainFrame;
+        this.event = event;
+        setTerms();
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBackground(Colors.getBackgroundColor());
-//        JLabel greeting = new JLabel("Welcome!");
-//        greeting.setFont(Fonts.getHeaderFont());
-//        greeting.setForeground(Colors.getHeaderColor());
-//        greeting.setHorizontalAlignment(SwingConstants.CENTER);
         setMinimumSize(new Dimension(550, 500));
-        JLabel prompt = new JLabel("Choose from the actions below:");
+        JLabel prompt = new JLabel(term);
         prompt.setHorizontalAlignment(SwingConstants.CENTER);
         prompt.setFont(Fonts.getHeaderFont());
         prompt.setForeground(Colors.getHeaderColor());
         JPanel header = new JPanel(new GridLayout(2,1));
-//        header.add(greeting);
         header.add(prompt);
         header.setBackground(Colors.getBackgroundColor());
         add(header);
         setOpaque(true);
 
-        JButton optionHandleSeeker = new JButton("Handle job seekers");
-        allOptionButtons.add(optionHandleSeeker);
-        optionHandleSeeker.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                update(EventType.REQUEST_HANDLE_SEEKER, null);
-            }
-        });
-        JButton optionHandleOpening = new JButton("Handle job openings");
-        allOptionButtons.add(optionHandleOpening);
-        optionHandleOpening.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                update(EventType.REQUEST_HANDLE_OPENING, null);
-            }
-        });
-//        JButton optionSearch = new JButton("Search database");
-//        allOptionButtons.add(optionSearch);
-//        optionSearch.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                update(EventType.REQUEST_SEARCH, null);
-//            }
-//        });
+        getButtons();
+
         JPanel menuButtons = new JPanel();
         menuButtons.setBackground(Colors.getButtonBackgroundColor());
         menuButtons.setOpaque(true);
@@ -92,8 +72,70 @@ public class MenuPanel extends JPanel implements Subscriber{
         repaint();
         revalidate();
     }
+
+    private void setTerms(){
+        if (event.getPhase() == Event.Phase.AWAIT_INPUT){
+            term = "Choose from the actions below:";
+        }
+        else if (event.getAction() == Event.Action.MATCH){
+            term = "Choose which matching strategy to use:";
+        }
+    }
+
+    private void getButtons(){
+        if (event.getPhase() == Event.Phase.AWAIT_INPUT) {
+            JButton optionHandleSeeker = new JButton("Handle job seekers");
+            allOptionButtons.add(optionHandleSeeker);
+            optionHandleSeeker.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    Update(Event.chooseType(Event.Subject.SEEKER));
+                }
+            });
+            JButton optionHandleOpening = new JButton("Handle job openings");
+            allOptionButtons.add(optionHandleOpening);
+            optionHandleOpening.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+
+                    Update(Event.chooseType(Event.Subject.OPENING));
+                }
+            });
+        }
+         else if (event.getAction() == Event.Action.MATCH) {
+            Event.Phase newPhase = Event.Phase.MATCH_STRATEGY_SELECTED;
+
+            JButton optionStrict = new JButton("Strict");
+            allOptionButtons.add(optionStrict);
+            optionStrict.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    Update(Event.submit(Event.Action.MATCH, event.getSubject(), event.getContents(), StrategyType.STRICT));
+                }
+            });
+            JButton optionFlex= new JButton("Flexible");
+            allOptionButtons.add(optionFlex);
+            optionFlex.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    Update(Event.submit(Event.Action.MATCH, event.getSubject(), event.getContents(), StrategyType.FLEXIBLE));
+                }
+            });
+            JButton optionEdu= new JButton("Education focus");
+            allOptionButtons.add(optionEdu);
+            optionEdu.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    Update(Event.submit(Event.Action.MATCH, event.getSubject(), event.getContents(), StrategyType.EDUCATION_FOCUSED));
+                }
+            });
+            }
+        }
     @Override
-    public void update(EventType option, Object data )  {
-        mainFrame.update(option, data);
+    public void Update(Controller.Event event ) {
+        if (event.getAction() == Event.Action.MATCH){
+            event.setPhase(Event.Phase.MATCH_STRATEGY_SELECTED);
+        }
+        mainFrame.Update(event);
     }
 }

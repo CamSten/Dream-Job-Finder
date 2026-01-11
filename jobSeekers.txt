@@ -5,7 +5,7 @@
 1005;Erik Eriksson;HIGH_SCHOOL;1;IT
 5681;Cami;HIGH_SCHOOL;2;Medicine
 8006;Cami;PHD;2;Medicine
-5595;Beeboo;PHD;9;Supervising
+5595;Beeboo;BACHELOR;10;Supervising
 4350;Beebs;BACHELOR;19;Astronomy
 3838;Namnsson;MASTER;23;Agriculture
 9051;John Doe;MASTER;55;Football

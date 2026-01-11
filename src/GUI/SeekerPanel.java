@@ -1,5 +1,7 @@
 package GUI;
 
+import Controller.Event;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -11,12 +13,17 @@ public class SeekerPanel extends JPanel implements Subscriber{
     private MainFrame mainFrame;
     private JPanel centerPanel;
     private List<JButton> allOptionButtons = new ArrayList<>();
+    private Event event;
+    private PanelDecorator decorator;
 
-    public SeekerPanel(MainFrame mainFrame){
+    public SeekerPanel(MainFrame mainFrame, Controller.Event event, PanelDecorator decorator){
         this.mainFrame = mainFrame;
+        this.event = event;
+        this.decorator = decorator;
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setMinimumSize(new Dimension(550, 500));
         setBackground(Colors.getBackgroundColor());
+        HeaderPanel headerPanel = new HeaderPanel(decorator, event);
         if (centerPanel == null){
             this.centerPanel = new JPanel();
         }
@@ -29,15 +36,14 @@ public class SeekerPanel extends JPanel implements Subscriber{
         optionAddSeeker.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                update(EventType.REQUEST_SEE_SEEKER_LIST, null);
-            }
+                Update(Event.submit(Event.Action.VIEW, Event.Subject.SEEKER, null, null));            }
         });
         JButton optionAddOpening = new JButton("Add new job seeker");
         allOptionButtons.add(optionAddOpening);
         optionAddOpening.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                update(EventType.REQUEST_ADD_SEEKER, null);
+                Update(Event.submit(Event.Action.ADD, Event.Subject.SEEKER, null, null));
             }
         });
         JButton optionSearch = new JButton("Find job seeker by name");
@@ -45,7 +51,7 @@ public class SeekerPanel extends JPanel implements Subscriber{
         optionSearch.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                update(EventType.REQUEST_SEARCH_SEEKER, null);
+                Update(Event.submit(Event.Action.SEARCH, Event.Subject.SEEKER, null, null));
             }
         });
         JButton optionEdit = new JButton("Edit job seeker");
@@ -53,7 +59,7 @@ public class SeekerPanel extends JPanel implements Subscriber{
         optionEdit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                update(EventType.REQUEST_EDIT_SEEKER, null);
+                Update(Event.submit(Event.Action.EDIT, Event.Subject.SEEKER, null, null));
             }
         });
         JButton optionDelete = new JButton("Delete job seeker");
@@ -61,7 +67,7 @@ public class SeekerPanel extends JPanel implements Subscriber{
         optionDelete.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                update(EventType.REQUEST_REMOVE_SEEKER, null);
+                Update(Event.submit(Event.Action.REMOVE, Event.Subject.SEEKER, null, null));
             }
         });
         JButton optionMatch = new JButton("Match job seeker to jobs");
@@ -69,7 +75,7 @@ public class SeekerPanel extends JPanel implements Subscriber{
         optionMatch.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                update(EventType.REQUEST_MATCH_SEEKER, null);
+                Update(Controller.Event.submit(Controller.Event.Action.MATCH, Event.Subject.SEEKER, null, null));;
             }
         });
 
@@ -106,6 +112,8 @@ public class SeekerPanel extends JPanel implements Subscriber{
         buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
         buttonPanel.add(menuButtons);
         add(Box.createHorizontalGlue());
+        add(headerPanel);
+        add(Box.createHorizontalGlue());
         add(buttonPanel);
         add(Box.createHorizontalGlue());
         setVisible(true);
@@ -115,7 +123,7 @@ public class SeekerPanel extends JPanel implements Subscriber{
     }
 
     @Override
-    public void update(EventType option, Object data) {
-        mainFrame.update(option, data);
+    public void Update(Controller.Event event) {
+        mainFrame.Update(event);
     }
 }

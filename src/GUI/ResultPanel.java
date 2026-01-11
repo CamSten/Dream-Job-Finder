@@ -1,8 +1,10 @@
 package GUI;
 
+import Controller.Event;
 import model.JobOpening;
 import model.JobSeeker;
 
+import javax.naming.ldap.Control;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
@@ -10,22 +12,25 @@ import java.util.List;
 
 public class ResultPanel extends JPanel implements Subscriber {
     private MainFrame mainFrame;
+    private PanelDecorator decorator;
     private JPanel centerPanel;
-    private EventType eventType;
+    private Controller.Event event;
     List<JobOpening> jobOpeningList = new ArrayList<>();
     List<JobSeeker> jobSeekerList = new ArrayList<>();
     private JobOpening jobOpening;
     private JobSeeker jobSeeker;
     private String[] allUserinput;
+    int totalCount;
 
-    public ResultPanel(MainFrame mainFrame, EventType eventType, Object data){
+    public ResultPanel(MainFrame mainFrame, Controller.Event event, PanelDecorator decorator){
         this.mainFrame = mainFrame;
-        this.eventType = eventType;
-        getData(data);
-        System.out.println("resultPanel constructor was reached, eventType is: " + eventType);
+        this.event = event;
+        this.decorator = decorator;
+
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setMinimumSize(new Dimension(550, 500));
         setBackground(Colors.getBackgroundColor());
+        setLayout(new BorderLayout());
         if (centerPanel == null){
             this.centerPanel = new JPanel();
         }
@@ -34,62 +39,59 @@ public class ResultPanel extends JPanel implements Subscriber {
         }
         centerPanel.setLayout(new BorderLayout());
         centerPanel.setBackground(Colors.getBackgroundColor());
-        add(centerPanel);
-        checkInput(eventType, data);
+        HeaderPanel headerPanel = new HeaderPanel(decorator, event);
+        if (event.getOutcome() != Event.Outcome.FAILURE && event.getOutcome() != Event.Outcome.NOT_FOUND) {
+            getData(event.getContents());
+            checkInput(event);
+        }
+        add(headerPanel, BorderLayout.NORTH);
+        add(centerPanel, BorderLayout.CENTER);
+
         setVisible(true);
         repaint();
         revalidate();
     }
-
-    private void displayFoundTerm(Object data) {
+    private void displayFoundTerm() {
+        System.out.println("displayfoundTerm was reached");
         centerPanel.removeAll();
-        String term = findTerm(data);
-        JLabel resultlabel = new JLabel("Search was successful, found " + term + " :");
-        resultlabel.setHorizontalAlignment(SwingConstants.CENTER);
-        resultlabel.setFont(Fonts.getHeaderFont());
-        resultlabel.setForeground(Colors.getHeaderColor());
 
-        JTextArea resultField = null;
+        JTextArea resultArea = new JTextArea();
+        String text = "";
         if (jobSeeker != null) {
-            resultField = new JTextArea(jobSeeker.toString());
-            resultField.setForeground(Colors.getBackgroundColor());
+            text = jobSeeker.printout();
+
         }
         else if (jobOpening != null){
-            resultField = new JTextArea(jobOpening.toString());
-            resultField.setForeground(Colors.getBackgroundColor());
+            text = jobOpening.printout();
         }
-        resultlabel.setForeground(Colors.getButtonTextColor());
-        centerPanel.add(resultlabel, BorderLayout.NORTH);
-        centerPanel.add(resultField, BorderLayout.CENTER);
+        resultArea.setText(text);
+
+        JPanel wrapperPanel = new JPanel();
+        getTextArea(wrapperPanel, text);
+        wrapperPanel.setBorder(
+                BorderFactory.createEmptyBorder(10, 40, 10, 40)
+        );
+        wrapperPanel.setBackground(Colors.getBackgroundColor());
+        centerPanel.add(wrapperPanel, BorderLayout.CENTER);
         repaint();
         revalidate();
     }
-    private void displayList(Object data, EventType eventType){
-        getData(data);
-        System.out.println("in ResultPanel, displayList is reached, eventType is:" + eventType);
+    private void displayList(Event event){
         centerPanel.removeAll();
-        String term = findTerm(data);
-        JLabel resultLabel = new JLabel("The following" + term + "have been found:");
-        resultLabel.setFont(Fonts.getHeaderFont());
-        resultLabel.setForeground(Colors.getHeaderColor());
         JPanel wrapperPanel = new JPanel(new BorderLayout());
         wrapperPanel.setBackground(Colors.getBackgroundColor());
-        if (eventType == EventType.RETURN_FOUND_SEEKERS) {
-            System.out.println("--- eventType is return found seekers");
+        if (event.getSubject() == Event.Subject.SEEKER) {
             String result = getPrintout(true);
             getTextArea(wrapperPanel, result);
         }
-        else if (eventType == EventType.RETURN_FOUND_OPENINGS){
-            System.out.println("--- eventType is return found openings");
+        else if (event.getSubject() == Event.Subject.OPENING){
             String result = getPrintout(false);
             getTextArea(wrapperPanel, result);
         }
         wrapperPanel.setBorder(
                 BorderFactory.createEmptyBorder(10, 40, 10, 40)
         );
-        resultLabel.setBackground(Colors.getButtonTextColor());
         centerPanel.add(wrapperPanel, BorderLayout.CENTER);
-        centerPanel.add(resultLabel, BorderLayout.NORTH);
         repaint();
         revalidate();
     }
@@ -105,100 +107,22 @@ public class ResultPanel extends JPanel implements Subscriber {
         resultArea.setCaretPosition(0);
         resultArea.setFont(Fonts.getButtonFont());
         resultArea.setForeground(Colors.getHeaderColor());
+        JPanel countPanel = new JPanel(new GridLayout(1, 3));
+        JLabel count = new JLabel("Total count:");
+        JTextArea showNumber = new JTextArea(String.valueOf(totalCount));
+        JPanel placeHolder = new JPanel();
+        placeHolder.setBackground(Colors.getBackgroundColor());
+
+        countPanel.add(count);
+        countPanel.add(showNumber);
+        countPanel.add(placeHolder);
+
+        decorator.adjustLabel(count);
+        decorator.adjustTextArea(showNumber);
+        wrapperPanel.add(countPanel, BorderLayout.NORTH);
         wrapperPanel.add(scrollResults, BorderLayout.CENTER);
     }
 
-    private void displayConfirmation(EventType eventType, Object data, boolean success){
-        JPanel confirmationPanel = new JPanel();
-        JPanel confirmation = getConfirmationPanel(eventType);
-        if (eventType == EventType.RETURN_ADD_SUCCESSFUL || eventType == EventType.RETURN_EDIT_SUCCESSFUL || eventType == EventType.RETURN_REMOVE_SUCCESSFUL){
-            String info = getConfirmationInfo(data);
-            getTextArea(confirmation, info);
-        }
-        else if (!success){
-
-        }
-        confirmationPanel.add(confirmation);
-        confirmationPanel.setBackground(Colors.getBackgroundColor());
-        confirmationPanel.setForeground(Colors.getHeaderColor());
-        confirmationPanel.setFont(Fonts.getHeaderFont());
-        if (centerPanel != null){
-            centerPanel.removeAll();
-            centerPanel.add(confirmationPanel, BorderLayout.CENTER);
-        }
-        revalidate();
-        repaint();
-    }
-    private JPanel getConfirmationPanel (EventType eventType){
-        JPanel confirmationPanel = new JPanel();
-        confirmationPanel.setLayout(new BoxLayout(confirmationPanel, BoxLayout.Y_AXIS));
-        confirmationPanel.setBackground(Colors.getBackgroundColor());
-        String text = "";
-        if (eventType == EventType.RETURN_ADD_SUCCESSFUL){
-            text = "New submission has been added successfully.";
-        }
-        else if (eventType == EventType.RETURN_EDIT_SUCCESSFUL){
-            text = "The post has been edited: ";
-        }
-        else if (eventType == EventType.RETURN_REMOVE_SUCCESSFUL){
-            text = "The post has been deleted.";
-        }
-        else if (eventType == EventType.RETURN_REMOVE_NOT_SUCCESSFUL){
-            text = "Deleting was unsuccessful: the post has not been found";
-        }
-        JLabel confirmation = new JLabel(text);
-        confirmation.setFont(Fonts.getHeaderFont());
-        confirmation.setBackground(Colors.getBackgroundColor());
-        confirmation.setForeground(Colors.getHeaderColor());
-        confirmationPanel.add(confirmation);
-        return confirmationPanel;
-    }
-    private String getConfirmationInfo (Object data){
-        String text = "";
-        if (data instanceof JobSeeker seeker){
-            text = seeker.printout();
-        }
-        else if (data instanceof JobOpening opening){
-            text = opening.printout();
-        }
-        else if (data == null){
-            text = "";
-        }
-        return text;
-    }
-    private String findTerm(Object data) {
-        System.out.println("findTerm in ResultPanel is reached. Data is: " + data.getClass());
-        String term = "";
-        if (eventType == EventType.RETURN_FOUND_THIS_OPENING){
-            term = " job opening ";
-        }
-        else if (eventType == EventType.RETURN_FOUND_OPENINGS){
-            term = " job openings ";
-        }
-        else if (eventType == EventType.RETURN_FOUND_THIS_SEEKER){
-            term = " job seeker ";
-        }
-        else if (eventType == EventType.RETURN_FOUND_SEEKERS){
-            term = " job seekers ";
-        }
-        else if (data instanceof List list && list.getFirst() instanceof JobSeeker){
-            if (list.size() > 1){
-                term = "job seekers";
-            }
-            else {
-                term = "job seeker";
-            }
-        }
-        else if (data instanceof List list && list.getFirst() instanceof JobOpening){
-            if (list.size() > 1){
-                term = "job openings";
-            }
-            else {
-                term = "job opening";
-            }
-        }
-        return term;
-    }
     private void getData(Object data){
         if (data != null && data instanceof List list){
             if (list.getFirst() instanceof JobSeeker){
@@ -218,14 +142,17 @@ public class ResultPanel extends JPanel implements Subscriber {
     private String getPrintout(boolean showSeekers){
         System.out.println("getPrintout is reached");
         StringBuilder printout = new StringBuilder();
+
         if (showSeekers){
             for (JobSeeker seeker : jobSeekerList){
+                totalCount+=1;
                 printout.append(seeker.printout());
                 printout.append("\n\n");
             }
         }
         else {
             for (JobOpening opening : jobOpeningList){
+                totalCount+=1;
                 printout.append(opening.printout());
                 printout.append("\n\n");
                 System.out.println("opening.toDataString is: " + opening);
@@ -235,35 +162,36 @@ public class ResultPanel extends JPanel implements Subscriber {
         return printout.toString();
     }
 
-    public void checkInput(EventType eventType, Object data) {
-        this.eventType = eventType;
-        switch (eventType){
-            case RETURN_ADD_OPENING, RETURN_ADD_SEEKER, RETURN_ADD_SUCCESSFUL, RETURN_EDIT_SUCCESSFUL, RETURN_REMOVE_SUCCESSFUL ->{
-                displayConfirmation(eventType, data, true);
+    public void checkInput(Controller.Event event) {
+        System.out.println("checkInput is reached");
+        this.event = event;
+        if (event.getAction() == Event.Action.VIEW){
+            displayList(event);
+        }
+        else if(event.getAction() == Event.Action.SEARCH){
+                if (jobOpening != null || jobSeeker != null) {
+                    displayFoundTerm();
+                }
+                else {
+                    displayList(event);
+                }
             }
-            case RETURN_FOUND_THIS_OPENING, RETURN_FOUND_THIS_SEEKER -> {
-                displayFoundTerm(data);
-            }
-            case RETURN_FOUND_OPENINGS, RETURN_FOUND_SEEKERS -> {
-                displayList(data, eventType);
-            }
-            case RETURN_OPENING_NOT_FOUND, RETURN_SEEKER_NOT_FOUND, RETURN_REMOVE_NOT_SUCCESSFUL -> {
-                displayConfirmation(eventType, data, false);
+        else if (event.getAction() == Event.Action.EDIT && event.getOutcome() == Event.Outcome.OK) {
+            displayFoundTerm();
+        }
+            else {
+                displayList(event);
             }
         }
-    }
+
     @Override
-    public void update(EventType eventType, Object data) {
-        System.out.println("update in ResultPanel was reached, case is: " + eventType);
-        switch (eventType){
-            case RETURN_ADD_OPENING, RETURN_ADD_SEEKER ->{
-                displayConfirmation(eventType, data, true);
+    public void Update(Controller.Event event) {
+        switch (event.getAction()){
+            case SEARCH -> {
+                displayFoundTerm();
             }
-            case RETURN_FOUND_THIS_OPENING, RETURN_FOUND_THIS_SEEKER -> {
-                displayFoundTerm(data);
-            }
-            case RETURN_FOUND_OPENINGS, RETURN_FOUND_SEEKERS -> {
-                displayList(data, eventType);
+            default -> {
+                displayList(event);
             }
         }
     }

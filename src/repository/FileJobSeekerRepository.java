@@ -1,6 +1,7 @@
 package repository;
 
 import Controller.ApplicationManager;
+import Controller.Event;
 import GUI.Subscriber;
 import model.JobSeeker;
 
@@ -50,19 +51,19 @@ public class FileJobSeekerRepository implements JobSeekerRepository {
 
         List<JobSeeker> all = findAll();
         boolean exists = false;
+        Event.Outcome outcome = Event.Outcome.ALREADY_EXISTS;
         for (int i = 0; i < all.size(); i++) {
             if (all.get(i).getId().equals(jobSeeker.getId())) {
                 all.set(i, jobSeeker);
                 exists = true;
-                applicationManager.update(Subscriber.EventType.RETURN_SEEKER_ALREADY_EXIST, null);
                 break;
             }
         }
         if (!exists) {
+            outcome = Event.Outcome.OK;
             all.add(jobSeeker);
-            applicationManager.update(Subscriber.EventType.RETURN_ADD_SUCCESSFUL, null);
-
         }
+        applicationManager.Update(new Event(Event.Phase.DISPLAY, Event.Action.ADD, Event.Subject.SEEKER, Event.Origin.LOGIC, outcome, jobSeeker, null));
         writeAll(all);
     }
 
@@ -116,14 +117,14 @@ public class FileJobSeekerRepository implements JobSeekerRepository {
     public void delete(String id) {
         List<JobSeeker> all = findAll();
         boolean removed = all.removeIf(seeker -> seeker.getId().equals(id));
-        if (removed) {
-            writeAll(all);
-            System.out.println("Deleted seeker with ID: " + id);
-            applicationManager.update(Subscriber.EventType.RETURN_REMOVE_SUCCESSFUL, null);
-        } else {
+        Event.Outcome outcome = Event.Outcome.OK;
+        if (!removed) {
             System.out.println("ID not found: " + id);
-            applicationManager.update(Subscriber.EventType.RETURN_REMOVE_NOT_SUCCESSFUL, null);
+            outcome = Event.Outcome.FAILURE;
         }
+        writeAll(all);
+        System.out.println("Deleted seeker with ID: " + id);
+        applicationManager.Update(new Event(Event.Phase.DISPLAY, Event.Action.REMOVE, Event.Subject.SEEKER, Event.Origin.LOGIC, Event.Outcome.OK, id, null));
     }
 
     // helper to save the whole list back to the file
@@ -136,4 +137,5 @@ public class FileJobSeekerRepository implements JobSeekerRepository {
             System.err.println("Could not write file: " + e.getMessage());
         }
     }
+
 }

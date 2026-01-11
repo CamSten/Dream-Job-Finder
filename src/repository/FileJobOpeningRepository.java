@@ -1,8 +1,10 @@
 package repository;
 
 import Controller.ApplicationManager;
+import Controller.Event;
 import GUI.Subscriber;
 import model.JobOpening;
+import model.JobSeeker;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -15,7 +17,6 @@ public class FileJobOpeningRepository implements JobOpeningRepository {
 
     public FileJobOpeningRepository(ApplicationManager applicationManager) {
         System.out.println("FileJobOpeningRepository constructor is reached");
-        this.applicationManager = applicationManager;
         ensureFileExists();
     }
 
@@ -42,19 +43,19 @@ public class FileJobOpeningRepository implements JobOpeningRepository {
     public void save(JobOpening jobOpening) {
         List<JobOpening> all = findAll();
         boolean exists = false;
+        Event.Outcome outcome = Event.Outcome.ALREADY_EXISTS;
         for (int i = 0; i < all.size(); i++) {
             if (all.get(i).getId().equals(jobOpening.getId())) {
                 all.set(i, jobOpening);
                 exists = true;
-                applicationManager.update(Subscriber.EventType.RETURN_OPENING_ALREADY_EXISTS, null);
                 break;
             }
         }
         if (!exists) {
             all.add(jobOpening);
-            applicationManager.update(Subscriber.EventType.RETURN_ADD_SUCCESSFUL, null);
-
+            outcome = Event.Outcome.OK;
         }
+        applicationManager.Update(new Event(Event.Phase.DISPLAY, Event.Action.ADD, Event.Subject.OPENING, Event.Origin.LOGIC, outcome, jobOpening, null));
         writeAll(all);
     }
 
@@ -112,11 +113,9 @@ public class FileJobOpeningRepository implements JobOpeningRepository {
         if (removed) {
             writeAll(all);
             System.out.println("Deleted job with ID: " + id);
-            applicationManager.update(Subscriber.EventType.RETURN_REMOVE_SUCCESSFUL, null);
 
         } else {
             System.out.println("ID not found: " + id);
-            applicationManager.update(Subscriber.EventType.RETURN_REMOVE_NOT_SUCCESSFUL, null);
 
         }
     }

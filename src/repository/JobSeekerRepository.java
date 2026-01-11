@@ -1,5 +1,6 @@
 package repository;
 
+import Controller.Event;
 import model.JobSeeker;
 import java.util.List;
 import java.util.Optional;
@@ -16,4 +17,5 @@ public interface JobSeekerRepository {
     List<JobSeeker> findByName(String name);
 
     void delete(String id);
+
 }

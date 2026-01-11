@@ -1,8 +1,7 @@
 package GUI;
 
 import Controller.ApplicationManager;
-import model.JobOpening;
-import model.JobSeeker;
+import Controller.Event;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,23 +11,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainFrame extends JFrame implements Subscriber {
+    public static Controller.ApplicationManager applicationManager;
+    private PanelDecorator decorator;
     private List<Subscriber> subscribers = new ArrayList<>();
     private JPanel centerPanel;
     private JPanel bottomPanel;
     private MenuPanel menuPanel;
-    private JobPanel jobPanel;
-    private SeekerPanel seekerPanel;
-    private SearchPanel searchPanel;
-    private AdderPanel adderPanel;
-    private MatchPanel matchPanel;
-    private ResultPanel resultPanel;
-    private EditPanel editPanel;
-    private RemovePanel removePanel;
-    public static Controller.ApplicationManager applicationManager;
-    private PanelMaker panelMaker;
 
-    public MainFrame(ApplicationManager applicationManager){
-        this.panelMaker = new PanelMaker(this);
+    public MainFrame(ApplicationManager applicationManager) {
+        this.decorator = new PanelDecorator();
         System.out.println("MainFrame constructor was reached");
         this.applicationManager = applicationManager;
         setTitle("DreamJobFinder");
@@ -38,7 +29,6 @@ public class MainFrame extends JFrame implements Subscriber {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(575, 525));
         setBackground(Colors.getBackgroundColor());
-
         centerPanel = new JPanel(new BorderLayout());
         centerPanel.setBackground(Colors.getBackgroundColor());
         centerPanel.setMinimumSize(new Dimension(550, 500));
@@ -48,124 +38,25 @@ public class MainFrame extends JFrame implements Subscriber {
         bottomPanel.setBackground(Colors.getBackgroundColor());
         bottomPanel.setOpaque(false);
         add(bottomPanel, BorderLayout.SOUTH);
-        showMenuPanel();
+        showStartMenuPanel(Event.awaitInput(Event.Action.VIEW, Event.Subject.NONE, Event.Origin.GUI));
     }
 
-    public void showMenuPanel(){
+    public void showStartMenuPanel(Event event) {
         removeCenterPanelContent();
-        if (menuPanel == null){
-            this.menuPanel = new MenuPanel(this);
-        }
-        if (bottomPanel != null){
+        if (bottomPanel != null) {
             bottomPanel.removeAll();
         }
-        centerPanel.add(menuPanel, BorderLayout.CENTER);
+        MenuPanel menuPanel = new MenuPanel(this, event);
+        centerPanel.add(menuPanel);
         adjustCenterPanel(menuPanel);
     }
-    public void showSearchPanel(EventType eventType){
-        removeCenterPanelContent();
-        if (searchPanel == null){
-            this.searchPanel = new SearchPanel(this, eventType, panelMaker);
-        }
-        else {
-            searchPanel.showSearchPanel(eventType);
-        }
-        centerPanel.add(searchPanel, BorderLayout.CENTER);
-        adjustCenterPanel(searchPanel);
-        adjustBottomPanel();
-    }
-    public void showAdderPanel(EventType eventType){
-        removeCenterPanelContent();
-        if (adderPanel == null){
-            this.adderPanel = new AdderPanel(this, eventType, panelMaker);
-        }
-        else {
-            adderPanel.showAdderPanel(eventType);
-        }
-        applicationManager.addSubscriber(adderPanel);
-        centerPanel.add(adderPanel, BorderLayout.CENTER);
-        adjustCenterPanel(adderPanel);
-        adjustBottomPanel();
-    }
-    public void showMatchPanel(){
-        removeCenterPanelContent();
-        if (matchPanel == null){
-            this.matchPanel = new MatchPanel(this, panelMaker);
-        }
-        applicationManager.addSubscriber(matchPanel);
-        centerPanel.add(matchPanel, BorderLayout.CENTER);
-        adjustCenterPanel(menuPanel);
-        adjustBottomPanel();
-    }
-    public void showResultPanel(EventType eventType, Object data){
-        System.out.println("SHOW RESULT PANEL IS REACHED, eventType is: " + eventType);
-        removeCenterPanelContent();
-            resultPanel = new ResultPanel(this, eventType, data);
-            centerPanel.add(resultPanel, BorderLayout.CENTER);
-            applicationManager.addSubscriber(resultPanel);
-        adjustCenterPanel(resultPanel);
-        adjustBottomPanel();
-    }
-    public void showJobPanel(){
-        removeCenterPanelContent();
-        if (jobPanel == null){
-            this.jobPanel = new JobPanel(this);
-        }
-        centerPanel.add(jobPanel, BorderLayout.CENTER);
-        applicationManager.addSubscriber(jobPanel);
-        adjustCenterPanel(jobPanel);
-        adjustBottomPanel();
-    }
-    public void showSeekerPanel(){
-        removeCenterPanelContent();
-        if (seekerPanel == null){
-            this.seekerPanel = new SeekerPanel(this);
-        }
-        centerPanel.add(seekerPanel, BorderLayout.CENTER);
-        applicationManager.addSubscriber(seekerPanel);
-        adjustCenterPanel(seekerPanel);
-        adjustBottomPanel();
-    }
-
-    public void showEditPanel(Subscriber.EventType eventType, Object data){
-        System.out.println("showEditPanel in MainFrame is reached");
-        removeCenterPanelContent();
-        if (eventType == EventType.RETURN_OPTIONS){
-            if (data instanceof List list && list.getFirst() instanceof JobSeeker){
-                eventType.setSubject(EventType.Subject.SEEKER);
-            }
-            else {
-                eventType.setSubject(EventType.Subject.OPENING);
-            }
-        }
-            this.editPanel = new EditPanel(this, eventType, data, panelMaker);
-            applicationManager.addSubscriber(editPanel);
-        editPanel.showEditPanel(eventType, data);
-        centerPanel.add(editPanel, BorderLayout.CENTER);
-        adjustCenterPanel(editPanel);
-        adjustBottomPanel();
-    }
-    public void showRemovePanel(EventType eventType, Object data){
-        System.out.println("showRemovePanel in MainFrame is reached");
-        removeCenterPanelContent();
-        if (removePanel == null){
-            this.removePanel = new RemovePanel(this, panelMaker, eventType, data);
-            applicationManager.addSubscriber(removePanel);
-        }
-        else {
-            removePanel.showRemovePanel(eventType, data);
-        }
-        centerPanel.add(removePanel, BorderLayout.CENTER);
-        adjustCenterPanel(removePanel);
-        adjustBottomPanel();
-    }
-
-    private void removeCenterPanelContent(){
+    private void removeCenterPanelContent() {
         if (centerPanel != null) {
             centerPanel.removeAll();
         }
     }
-    private void adjustCenterPanel(JPanel panel){
+
+    private void adjustCenterPanel(JPanel panel) {
         panel.setVisible(true);
         panel.setEnabled(true);
         panel.setFocusable(true);
@@ -173,8 +64,9 @@ public class MainFrame extends JFrame implements Subscriber {
         revalidate();
         pack();
     }
-    private void adjustBottomPanel(){
-        if (bottomPanel == null){
+
+    private void adjustBottomPanel() {
+        if (bottomPanel == null) {
             this.bottomPanel = new JPanel();
         }
         bottomPanel.removeAll();
@@ -185,7 +77,7 @@ public class MainFrame extends JFrame implements Subscriber {
         backToMenu.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                showMenuPanel();
+                showStartMenuPanel(Event.awaitInput(Event.Action.VIEW, Event.Subject.NONE, Event.Origin.GUI));
             }
         });
         bottomPanel.add(backToMenu);
@@ -196,60 +88,166 @@ public class MainFrame extends JFrame implements Subscriber {
         revalidate();
         pack();
     }
-    public void update(Subscriber.EventType eventType, Object data) {
-        System.out.println("update in MainFrame is reached. EventType is: " + eventType);
-        Subscriber.EventType returnEventType = eventType;
-        boolean relay = false;
-        if (eventType.getAction() == EventType.Action.VIEW && eventType.getQuantity() == EventType.Quantity.NONE){
-            if (eventType.getSubject() == EventType.Subject.OPENING){
-                showJobPanel();
-            }
-            else if (eventType.getSubject() == EventType.Subject.SEEKER){
-                showSeekerPanel();
-            }
+
+    public void Update(Controller.Event event) {
+        System.out.println("Update in MainFrame is reached. Phase: " + event.getPhase() + "\n Subject: " + event.getSubject() + "\n Action: " + event.getAction() + "\n Outcome: " + event.getOutcome() + "Origin: " + event.getOrigin() );
+        if (event.getContents() != null){
+            System.out.println("data is: " + event.getContents().getClass());
         }
-        else if (eventType == Subscriber.EventType.REQUEST_SEARCH_OPENING || eventType == Subscriber.EventType.REQUEST_SEARCH_SEEKER) {
-            showSearchPanel(eventType);
-        }
-        else if (eventType == Subscriber.EventType.REQUEST_EDIT_OPENING || eventType == Subscriber.EventType.REQUEST_EDIT_SEEKER){
-        System.out.println("in mainFram requestEdit, status is: " + eventType.getStatus());
-            if (data != null){
-            relay = true;
-            returnEventType = getEditSubject(eventType);
+        Event.Action action = event.getAction();
+        switch (action) {
+            case CHOOSE_TYPE -> {
+                showTypeMenu(event);
             }
-            else{
-                showEditPanel(eventType, data);
+            case ADD -> {
+                add(event);
             }
-        }
-        else if (eventType == Subscriber.EventType.REQUEST_REMOVE_SEEKER) {
-            relay = true;
-            if (eventType.getStatus() == EventType.Status.HAS_INPUT){
-                returnEventType = EventType.RETURN_REMOVE_SEEKER;
+            case EDIT -> {
+                edit(event);
             }
-        }
-        else if (eventType == Subscriber.EventType.REQUEST_REMOVE_OPENING) {
-            relay = true;
-            if (eventType.getStatus() == EventType.Status.HAS_INPUT){
-                returnEventType = EventType.RETURN_REMOVE_OPENING;
+            case VIEW -> {
+                view(event);
             }
-        }
-        else {
-            relay = true;
-        }
-        if (relay){
-            relayUpdate(returnEventType, data);
+            case MATCH -> {
+                match(event);
+            }
+            case REMOVE -> {
+                remove(event);
+            }
+            case SEARCH -> {
+                search(event);
+            }
         }
     }
-    private EventType getEditSubject(EventType eventType){
-        if (eventType.getSubject() == EventType.Subject.OPENING){
-            return EventType.RETURN_EDITING_OPENING;
+    private void setPanel(JPanel panel){
+        removeCenterPanelContent();
+        centerPanel.add(panel, BorderLayout.CENTER);
+        adjustBottomPanel();
+        adjustCenterPanel(panel);
+    }
+    private void showTypeMenu(Event event){
+        if (event.getSubject() == Event.Subject.SEEKER){
+            setPanel(new SeekerPanel(this, event, decorator));
         }
-        else {
-            return EventType.RETURN_EDITING_SEEKER;
+        else if (event.getSubject() == Event.Subject.OPENING){
+            setPanel(new JobPanel(this, event, decorator));
         }
     }
-    private void relayUpdate(Subscriber.EventType eventType, Object data){
-        System.out.println("in relayUpdate, eventType is: " + eventType );
-        applicationManager.update(eventType, data);
+
+    private void add(Event event) {
+        Event.Phase phase = event.getPhase();
+        switch (event.getOrigin()){
+            case GUI -> {
+                if (phase == Event.Phase.AWAIT_INPUT) {
+                    setPanel(new MultipleInputPanel(this, event, decorator));
+                }
+                else if (phase == Event.Phase.SUBMIT) {
+                    applicationManager.Update(event);
+                }
+            }
+            case LOGIC -> {
+                setPanel(new ResultPanel(this, event, decorator));
+            }
+            }
+    }
+
+    private void remove(Event event) {
+        Event.Origin origin = event.getOrigin();
+        Event.Phase phase = event.getPhase();
+        switch (origin) {
+            case GUI -> {
+                if (phase == Event.Phase.AWAIT_INPUT) {
+                    setPanel(new SingleInputPanel(this, event, decorator));
+                } else {
+                    applicationManager.Update(event);
+                }
+            }
+            case LOGIC -> {
+                if (phase == Event.Phase.DISPLAY) {
+                    setPanel(new MultipleInputPanel(this, event, decorator));
+                } else {
+                    setPanel(new ResultPanel(this, event, decorator));
+                }
+            }
+        }
+    }
+
+    private void view(Event event) {
+        Event.Origin origin = event.getOrigin();
+        switch (origin) {
+            case GUI -> {
+                applicationManager.Update(event);
+            }
+            case LOGIC -> {
+                setPanel(new ResultPanel(this, event, decorator));
+            }
+        }
+    }
+
+    private void edit(Event event) {
+        Event.Origin origin = event.getOrigin();
+        if (event.getContents() != null) {
+            System.out.println("contents are: " + event.getContents());
+        }
+        switch (origin) {
+            case GUI -> {
+                if (event.getPhase() == Event.Phase.SUBMIT && event.getContents() == null) {
+                    setPanel(new SingleInputPanel(this, event, decorator));
+                }
+                else if (event.getPhase() == Event.Phase.SELECT) {
+                    setPanel(new MultipleInputPanel(this, event, decorator));
+                }
+                else {
+                    applicationManager.Update(event);
+                }
+            }
+            case LOGIC -> {
+                if(event.getContents() instanceof List){
+                    setPanel(new OptionPanel(this, decorator, event));
+                }
+                else if (event.getPhase() == Event.Phase.COMPLETE){
+                    setPanel(new ResultPanel(this, event, decorator));
+                }
+            }
+        }
+    }
+    private void search(Event event){
+        switch (event.getOrigin()){
+            case GUI -> {
+                if (event.getContents() == null){
+                    setPanel(new SingleInputPanel(this, event, decorator));
+                }
+                else {
+                    applicationManager.Update(event);                }
+            }
+            case LOGIC -> {
+                setPanel(new ResultPanel(this, event, decorator));
+            }
+        }
+    }
+
+    private void match(Event event) {
+        Event.Phase phase = event.getPhase();
+        Event.Origin origin = event.getOrigin();
+        switch (origin) {
+            case GUI -> {
+                if (event.getPhase() == Event.Phase.SUBMIT) {
+                    setPanel(new SingleInputPanel(this, event, decorator));
+                }
+                else if (event.getPhase() == Event.Phase.SELECT){
+                    setPanel(new MenuPanel(this, event));
+                }
+                 else {
+                        applicationManager.Update(event);
+                    }
+            }
+            case LOGIC -> {
+                if (event.getPhase() == Event.Phase.MATCH_TERM_SUBMITTED) {
+                    setPanel(new OptionPanel(this, decorator, event));
+                } else {
+                    setPanel(new ResultPanel(this, event, decorator));
+                }
+            }
+        }
     }
 }
