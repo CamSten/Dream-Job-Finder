@@ -16,6 +16,7 @@ public class FileJobOpeningRepository implements JobOpeningRepository {
     private ApplicationManager applicationManager;
 
     public FileJobOpeningRepository(ApplicationManager applicationManager) {
+        this.applicationManager = applicationManager;
         System.out.println("FileJobOpeningRepository constructor is reached");
         ensureFileExists();
     }
@@ -41,6 +42,8 @@ public class FileJobOpeningRepository implements JobOpeningRepository {
     // saves the job opening to the list and then to file
     @Override
     public void save(JobOpening jobOpening) {
+        System.out.println("save in JobOpeningRepo is reached");
+        Event.Phase newPhase = Event.Phase.COMPLETE;
         List<JobOpening> all = findAll();
         boolean exists = false;
         Event.Outcome outcome = Event.Outcome.ALREADY_EXISTS;
@@ -55,7 +58,8 @@ public class FileJobOpeningRepository implements JobOpeningRepository {
             all.add(jobOpening);
             outcome = Event.Outcome.OK;
         }
-        applicationManager.Update(new Event(Event.Phase.DISPLAY, Event.Action.ADD, Event.Subject.OPENING, Event.Origin.LOGIC, outcome, jobOpening, null));
+        System.out.println("newPhase is: " + newPhase);
+        applicationManager.Update(new Event(newPhase, Event.Action.ADD, Event.Subject.OPENING, Event.Origin.LOGIC, outcome, jobOpening, null));
         writeAll(all);
     }
 

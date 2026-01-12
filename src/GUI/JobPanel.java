@@ -1,7 +1,6 @@
 package GUI;
 
 import Controller.Event;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -121,7 +120,6 @@ public class JobPanel extends JPanel implements Subscriber {
         setVisible(true);
         repaint();
         revalidate();
-
     }
 
     @Override

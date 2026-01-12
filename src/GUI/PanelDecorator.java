@@ -2,6 +2,8 @@ package GUI;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class PanelDecorator {
 
@@ -25,11 +27,27 @@ public class PanelDecorator {
                 BorderFactory.createLineBorder(Colors.getBorderColor(), 4, true)
         );
         button.setPreferredSize(new Dimension(200, 40));
+        button.setBorderPainted(false);
+        button.setContentAreaFilled(false);
+        button.setOpaque(true);
+        button.setFocusPainted(false);
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(Colors.getButtonHoverColor());
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.setBackground(Colors.getButtonBackgroundColor());
+            }
+        });
     }
     public void adjustNameButton(JButton button){
         button.setFont(Fonts.getButtonFont());
         button.setForeground(Colors.getHeaderColor());
         button.setBackground(Colors.getButtonTextColor());
+        button.setHorizontalAlignment(SwingConstants.LEFT);
         button.setBorder(
                 BorderFactory.createLineBorder(Colors.getBorderColor(), 4, true)
         );
@@ -58,13 +76,14 @@ public class PanelDecorator {
     }
     public void adjustLabel(JLabel label){
         label.setForeground(Colors.getButtonTextColor());
-        label.setPreferredSize(new Dimension(270, 45));
-        label.setMinimumSize(new Dimension(270, 45));
-        label.setMinimumSize(new Dimension(270, 45));
+        label.setBackground(Colors.getBorderColor());
+        label.setPreferredSize(new Dimension(200, 45));
+        label.setMinimumSize(new Dimension(200, 45));
+        label.setMinimumSize(new Dimension(200, 45));
         label.setFont(Fonts.getInputPromptFont());
     }
     public void editInputField(JTextField inputField) {
-        inputField.setBackground(Colors.getButtonBackgroundColor());
+        inputField.setBackground(Color.WHITE);
         inputField.setForeground(Colors.getButtonTextColor());
         inputField.setPreferredSize(new Dimension(150, 45));
         inputField.setMinimumSize(new Dimension(150, 45));
@@ -88,7 +107,7 @@ public class PanelDecorator {
                 BorderFactory.createLineBorder(Colors.getBorderColor(), 4, true)
         );
         textArea.setFont(Fonts.getButtonFont());
-        textArea.setForeground(Colors.getHeaderColor());
+        textArea.setForeground(Colors.getBackgroundColor());
         textArea.setBackground(Colors.getButtonBackgroundColor());
         textArea.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
     }

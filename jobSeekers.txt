@@ -3,9 +3,12 @@
 1003;Carl Carlson;HIGH_SCHOOL;2;Sales
 1004;Desirée Dahl;PHD;3;Research
 1005;Erik Eriksson;HIGH_SCHOOL;1;IT
-5681;Cami;HIGH_SCHOOL;2;Medicine
-8006;Cami;PHD;2;Medicine
 5595;Beeboo;BACHELOR;10;Supervising
-4350;Beebs;BACHELOR;19;Astronomy
-3838;Namnsson;MASTER;23;Agriculture
 9051;John Doe;MASTER;55;Football
+9362;Beebs;BACHELOR;12;Aviation
+5278;Cami3;HIGH_SCHOOL;44;Administration
+1056;Cami5;MASTER;11;Administration
+7170;Beeberino;BACHELOR;14;Administration
+3696;Beebsy;PHD;15;Medicine
+1298;Beeber;BACHELOR;2;Medicine
+7415;Beeby;PHD;2;Medicine

@@ -155,6 +155,9 @@ public class Event {
     public void setContents(Object input){
         this.contents = input;
     }
+    public void setExtraContents(Object input){
+        this.extraContents = input;
+    }
     public void setPhase(Phase phase){
         this.phase = phase;
     }

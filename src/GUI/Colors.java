@@ -19,6 +19,8 @@ public class Colors {
     //    new Color(107, 99, 93);
     private Color textColor = new Color(5, 4, 4);
 
+    private static Color buttonHoverColor = new Color(155, 165, 175);
+
     public static Color getBackgroundColor() {
         return backgroundColor;
     }
@@ -40,5 +42,9 @@ public class Colors {
     }
     public static Color getBorderColor(){
         return borderColor;
+    }
+
+    public static Color getButtonHoverColor(){
+        return buttonHoverColor;
     }
 }

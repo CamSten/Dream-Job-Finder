@@ -40,6 +40,7 @@ public class EducationFocusedMatchingStrategy implements MatchingStrategy {
             result.addReason("Experience too low");
         }
         result.setScore(score);
+
         return result;
     }
 }

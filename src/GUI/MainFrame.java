@@ -2,7 +2,6 @@ package GUI;
 
 import Controller.ApplicationManager;
 import Controller.Event;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -20,7 +19,6 @@ public class MainFrame extends JFrame implements Subscriber {
 
     public MainFrame(ApplicationManager applicationManager) {
         this.decorator = new PanelDecorator();
-        System.out.println("MainFrame constructor was reached");
         this.applicationManager = applicationManager;
         setTitle("DreamJobFinder");
         setVisible(true);
@@ -62,7 +60,6 @@ public class MainFrame extends JFrame implements Subscriber {
         panel.setFocusable(true);
         repaint();
         revalidate();
-        pack();
     }
 
     private void adjustBottomPanel() {
@@ -90,10 +87,6 @@ public class MainFrame extends JFrame implements Subscriber {
     }
 
     public void Update(Controller.Event event) {
-        System.out.println("Update in MainFrame is reached. Phase: " + event.getPhase() + "\n Subject: " + event.getSubject() + "\n Action: " + event.getAction() + "\n Outcome: " + event.getOutcome() + "Origin: " + event.getOrigin() );
-        if (event.getContents() != null){
-            System.out.println("data is: " + event.getContents().getClass());
-        }
         Event.Action action = event.getAction();
         switch (action) {
             case CHOOSE_TYPE -> {
@@ -120,10 +113,10 @@ public class MainFrame extends JFrame implements Subscriber {
         }
     }
     private void setPanel(JPanel panel){
-        removeCenterPanelContent();
+        centerPanel.removeAll();
         centerPanel.add(panel, BorderLayout.CENTER);
-        adjustBottomPanel();
         adjustCenterPanel(panel);
+        adjustBottomPanel();
     }
     private void showTypeMenu(Event event){
         if (event.getSubject() == Event.Subject.SEEKER){
@@ -138,17 +131,17 @@ public class MainFrame extends JFrame implements Subscriber {
         Event.Phase phase = event.getPhase();
         switch (event.getOrigin()){
             case GUI -> {
-                if (phase == Event.Phase.AWAIT_INPUT) {
+                if (phase == Event.Phase.SUBMIT) {
                     setPanel(new MultipleInputPanel(this, event, decorator));
                 }
-                else if (phase == Event.Phase.SUBMIT) {
+                else if (phase == Event.Phase.HANDLING) {
                     applicationManager.Update(event);
                 }
             }
             case LOGIC -> {
-                setPanel(new ResultPanel(this, event, decorator));
+                setPanel(new ResultPanel(this, event, decorator, false));
             }
-            }
+        }
     }
 
     private void remove(Event event) {
@@ -156,17 +149,22 @@ public class MainFrame extends JFrame implements Subscriber {
         Event.Phase phase = event.getPhase();
         switch (origin) {
             case GUI -> {
-                if (phase == Event.Phase.AWAIT_INPUT) {
-                    setPanel(new SingleInputPanel(this, event, decorator));
-                } else {
+                if (phase == Event.Phase.SUBMIT) {
+                    if (event.getContents() == null) {
+                        setPanel(new SingleInputPanel(this, event, decorator));
+                    } else if (event.getContents() != null) {
+                        applicationManager.Update(event);
+                    }
+                }
+                else if (phase == Event.Phase.SELECT){
                     applicationManager.Update(event);
                 }
             }
             case LOGIC -> {
-                if (phase == Event.Phase.DISPLAY) {
-                    setPanel(new MultipleInputPanel(this, event, decorator));
+                if (phase == Event.Phase.DISPLAY && event.getContents() instanceof ArrayList list) {
+                    setPanel(new OptionPanel(this, decorator, event));
                 } else {
-                    setPanel(new ResultPanel(this, event, decorator));
+                    setPanel(new ResultPanel(this, event, decorator, true));
                 }
             }
         }
@@ -179,7 +177,7 @@ public class MainFrame extends JFrame implements Subscriber {
                 applicationManager.Update(event);
             }
             case LOGIC -> {
-                setPanel(new ResultPanel(this, event, decorator));
+                setPanel(new ResultPanel(this, event, decorator, true));
             }
         }
     }
@@ -187,7 +185,6 @@ public class MainFrame extends JFrame implements Subscriber {
     private void edit(Event event) {
         Event.Origin origin = event.getOrigin();
         if (event.getContents() != null) {
-            System.out.println("contents are: " + event.getContents());
         }
         switch (origin) {
             case GUI -> {
@@ -206,7 +203,7 @@ public class MainFrame extends JFrame implements Subscriber {
                     setPanel(new OptionPanel(this, decorator, event));
                 }
                 else if (event.getPhase() == Event.Phase.COMPLETE){
-                    setPanel(new ResultPanel(this, event, decorator));
+                    setPanel(new ResultPanel(this, event, decorator, false));
                 }
             }
         }
@@ -221,7 +218,7 @@ public class MainFrame extends JFrame implements Subscriber {
                     applicationManager.Update(event);                }
             }
             case LOGIC -> {
-                setPanel(new ResultPanel(this, event, decorator));
+                setPanel(new ResultPanel(this, event, decorator, true));
             }
         }
     }
@@ -237,15 +234,15 @@ public class MainFrame extends JFrame implements Subscriber {
                 else if (event.getPhase() == Event.Phase.SELECT){
                     setPanel(new MenuPanel(this, event));
                 }
-                 else {
-                        applicationManager.Update(event);
-                    }
+                else {
+                    applicationManager.Update(event);
+                }
             }
             case LOGIC -> {
                 if (event.getPhase() == Event.Phase.MATCH_TERM_SUBMITTED) {
                     setPanel(new OptionPanel(this, decorator, event));
                 } else {
-                    setPanel(new ResultPanel(this, event, decorator));
+                    setPanel(new ResultPanel(this, event, decorator, true));
                 }
             }
         }

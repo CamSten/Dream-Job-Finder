@@ -1,7 +1,6 @@
 package GUI;
 
 import Controller.Event;
-
 import javax.swing.*;
 import java.awt.*;
 import java.util.Objects;
@@ -47,8 +46,7 @@ public class SingleInputPanel extends JPanel implements Subscriber {
         singleInputPanel.add(getSubmitButton());
         inputPanel.setBackground(Colors.getHeaderColor());
         inputPanel.setBorder(BorderFactory.createLineBorder(Colors.getBorderColor(), 5, true));
-        singleInputPanel.setBackground(Colors.getHeaderColor());
-        singleInputPanel.setBorder(BorderFactory.createLineBorder(Colors.getBorderColor(), 5, true));
+        singleInputPanel.setBackground(Colors.getBackgroundColor());
         return singleInputPanel;
     }
 

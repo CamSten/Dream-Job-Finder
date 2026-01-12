@@ -88,7 +88,7 @@ public class JobOpening implements Serializable {
         return "JobOpening{" +
                 "id='" + id + '\'' +
                 ", title='" + title + '\'' +
-                ", requiredEducation=" + requiredEducation +
+                ", requiredEducation=" + requiredEducation.name() +
                 ", minYearsExperience=" + minYearsExperience +
                 ", workArea='" + workArea + '\'' +
                 '}';

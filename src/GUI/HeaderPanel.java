@@ -1,10 +1,10 @@
 package GUI;
 
 import Controller.Event;
-
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.List;
 
 public class HeaderPanel extends JPanel {
     private PanelDecorator decorator;
@@ -18,13 +18,20 @@ public class HeaderPanel extends JPanel {
     private String pluralNoun = "";
     private String pluralVerb = "s";
     private String pluralHas = "s";
+    private int counter;
 
     public HeaderPanel(PanelDecorator decorator, Controller.Event event){
         this.decorator = decorator;
         this.event = event;
         setTerms(event);
         setBackground(Colors.getBackgroundColor());
-        add(getHeaderPanel());
+        setLayout(new BorderLayout());
+        setVisible(true);
+        add(getHeaderPanel(), BorderLayout.CENTER);
+        if (event.getAction() == Event.Action.VIEW || event.getPhase() == Event.Phase.MATCH_RESULT)
+        {
+            add(getCounter(), BorderLayout.SOUTH);
+        }
     }
     private JPanel getHeaderPanel() {
         JPanel headerPanel = new JPanel(new GridLayout(2,1));
@@ -32,7 +39,16 @@ public class HeaderPanel extends JPanel {
         JTextArea header = new JTextArea();
         String text = "";
         headerPanel.add(header);
-        if (event.getAction() == Event.Action.CHOOSE_TYPE && event.getSubject() == Event.Subject.OPENING){
+        if (event.getPhase() == Event.Phase.MATCH_RESULT){
+            if (event.getContents() instanceof List list && (!list.isEmpty())){
+            text = "The following match result has been found:";
+            }
+            else {
+            text = "No result was found";
+            }
+        }
+
+        else if (event.getAction() == Event.Action.CHOOSE_TYPE && event.getSubject() == Event.Subject.OPENING){
             text = "Job opening";
         }
         else if (event.getAction() == Event.Action.CHOOSE_TYPE && event.getSubject() == Event.Subject.SEEKER) {
@@ -45,7 +61,6 @@ public class HeaderPanel extends JPanel {
             text = "The following " + term + pluralNoun + " ha" + pluralHas + " been " + completedVerb;
         }
         else {
-            System.out.println("else-clause is reached in getHeaderPanel");
             text = actionTerm + " " + term;
             String promptText = getHeaderTerm();
             JTextArea prompt = new JTextArea(promptText);
@@ -58,9 +73,20 @@ public class HeaderPanel extends JPanel {
         header.setFont(Fonts.getHeaderFont());
         return headerPanel;
     }
-
+    private JPanel getCounter(){
+        JPanel wrapperPanel = new JPanel();
+        JPanel countPanel = new JPanel(new GridLayout(1, 3));
+        JLabel count = new JLabel("Total count:");
+        JTextArea showNumber = new JTextArea(String.valueOf(counter));
+        decorator.adjustLabel(count);
+        decorator.adjustTextArea(showNumber);
+        countPanel.add(count);
+        countPanel.add(showNumber);
+        wrapperPanel.add(countPanel);
+        wrapperPanel.setBackground(Colors.getBackgroundColor());
+        return wrapperPanel;
+    }
     public String getHeaderTerm(){
-        System.out.println("in getHeaderTerm, terms are: " + term + " " + imperativeActionTerm + " " + actionTerm) ;
         String headerTerm = "";
         Event.Origin origin = event.getOrigin();
         switch (origin) {
@@ -118,9 +144,20 @@ public class HeaderPanel extends JPanel {
             }
         }
         if (contents != null && contents instanceof ArrayList list && list.size() > 1) {
-            this.pluralVerb = "";
-            this.pluralNoun = "s";
-            this.pluralHas = "ve";
+            if (event.getPhase() == Event.Phase.MATCH_RESULT) {
+                String totalResult = "";
+                List<String> result = (List<String>) list;
+                for (String s : result){
+                    totalResult += s;
+                }
+                String[] parts = totalResult.split("-------------------------");
+                counter = parts.length;
+            } else {
+                counter = list.size();
+                this.pluralVerb = "";
+                this.pluralNoun = "s";
+                this.pluralHas = "ve";
+            }
         }
     }
 }

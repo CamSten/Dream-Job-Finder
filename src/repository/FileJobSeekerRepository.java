@@ -50,6 +50,7 @@ public class FileJobSeekerRepository implements JobSeekerRepository {
         // Let's implement full rewrite for simplicity to handle updates correctly.
 
         List<JobSeeker> all = findAll();
+        Event.Phase newPhase = Event.Phase.COMPLETE;
         boolean exists = false;
         Event.Outcome outcome = Event.Outcome.ALREADY_EXISTS;
         for (int i = 0; i < all.size(); i++) {
@@ -63,7 +64,7 @@ public class FileJobSeekerRepository implements JobSeekerRepository {
             outcome = Event.Outcome.OK;
             all.add(jobSeeker);
         }
-        applicationManager.Update(new Event(Event.Phase.DISPLAY, Event.Action.ADD, Event.Subject.SEEKER, Event.Origin.LOGIC, outcome, jobSeeker, null));
+        applicationManager.Update(new Event(newPhase, Event.Action.ADD, Event.Subject.SEEKER, Event.Origin.LOGIC, outcome, jobSeeker, null));
         writeAll(all);
     }
 
@@ -115,6 +116,7 @@ public class FileJobSeekerRepository implements JobSeekerRepository {
     // removes valid job seeker by id
     @Override
     public void delete(String id) {
+        Event.Phase phase = Event.Phase.COMPLETE;
         List<JobSeeker> all = findAll();
         boolean removed = all.removeIf(seeker -> seeker.getId().equals(id));
         Event.Outcome outcome = Event.Outcome.OK;
@@ -124,7 +126,7 @@ public class FileJobSeekerRepository implements JobSeekerRepository {
         }
         writeAll(all);
         System.out.println("Deleted seeker with ID: " + id);
-        applicationManager.Update(new Event(Event.Phase.DISPLAY, Event.Action.REMOVE, Event.Subject.SEEKER, Event.Origin.LOGIC, Event.Outcome.OK, id, null));
+        applicationManager.Update(new Event(phase, Event.Action.REMOVE, Event.Subject.SEEKER, Event.Origin.LOGIC, Event.Outcome.OK, id, null));
     }
 
     // helper to save the whole list back to the file

@@ -10,8 +10,6 @@ import repository.FileJobSeekerRepository;
 import repository.JobOpeningRepository;
 import repository.JobSeekerRepository;
 import service.MatchingService;
-import strategy.StrategyType;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,10 +33,6 @@ public class ApplicationManager implements Subscriber {
     }
 
     public void Update(Event event) {
-        System.out.println("Update in AppManager is reached. Phase:" + event.getPhase() + "\n Subject: " + event.getSubject() + "\n Action: " + event.getAction());
-        if (event.getContents() != null){
-            System.out.println("Data is: " + event.getContents());
-        }
         Event.Origin origin = event.getOrigin();
         switch (origin) {
             case GUI -> {
@@ -48,6 +42,9 @@ public class ApplicationManager implements Subscriber {
                 else if (event.getAction() == Event.Action.EDIT){
                     editPost(event);
                 }
+                else if (event.getAction() == Event.Action.REMOVE){
+                    removePost(event);
+                }
                 matchingService.Update(event);
             }
             case LOGIC -> {
@@ -55,7 +52,6 @@ public class ApplicationManager implements Subscriber {
             }
         }
     }
-//
     private Object createNewPost(Controller.Event event) {
         Object newPost = null;
         if (event.getSubject() == Event.Subject.SEEKER){
@@ -121,8 +117,23 @@ public class ApplicationManager implements Subscriber {
             }
         }
     }
+    private void removePost(Event event){
+        if (event.getPhase() == Event.Phase.SUBMIT){
+            matchingService.Update(event);
+        }
+        else {
+            if (event.getSubject() == Event.Subject.SEEKER) {
+                JobSeeker seeker = (JobSeeker) event.getContents();
+                event.setExtraContents(seeker.getId());
+                matchingService.Update(event);
+            } else if (event.getSubject() == Event.Subject.OPENING) {
+                JobOpening opening = (JobOpening) event.getContents();
+                event.setExtraContents(opening.getId());
+                matchingService.Update(event);
+            }
+        }
+    }
     private void editSeeker(JobSeeker seeker, String[]newInfo){
-        System.out.println("editSeeker is reached in ApplicationManager");
         String name = newInfo[0];
         String experience = newInfo[1];
         String branch = newInfo[2];
@@ -169,508 +180,5 @@ public class ApplicationManager implements Subscriber {
         opening.setWorkArea(branch);
         matchingService.updateJobOpening(opening);
     }
-
-
-//    private void search(Event event) {
-//        Event.Phase phase = event.getPhase();
-//        if (phase == Event.Phase.SUBMIT) {
-//            matchingService.Update(event);
-//        } else if (phase == Event.Phase.DISPLAY) {
-//            mainFrame.showResultPanel();
-//        }
-//
-//    }
-
-//    @Override
-//    public void update(Subscriber.EventType option, Object data) {
-//        System.out.println("update in ApplicationManager was reached. eventtype is: " + option);
-//        System.out.println("waitingForEdit is: " + waitingForEdit);
-//        System.out.println("waitingForRemove is: " + waitingForRemove);
-//        System.out.println("waitingForMatch is: " + waitingForMatchResults);
-//        switch (option) {
-//            case REQUEST_HANDLE_SEEKER -> {
-//                mainFrame.showSeekerPanel();
-//            }
-//            case REQUEST_HANDLE_OPENING -> {
-//                mainFrame.showJobPanel();
-//            }
-//            case REQUEST_SEE_SEEKER_LIST -> {
-//                List<JobSeeker> seekers = matchingService.getAllSeekers();
-//                if (seekers.isEmpty()) {
-//                    mainFrame.showResultPanel(EventType.RETURN_SEEKER_NOT_FOUND, null);
-//                } else {
-//                    mainFrame.showResultPanel(EventType.RETURN_FOUND_SEEKERS, seekers);
-//                }
-//            }
-//            case REQUEST_SEE_OPENING_LIST -> {
-//                System.out.println("case in AppManager: see job list. ");
-//                List<JobOpening> jobOpenings = matchingService.getAllJobOpenings();
-//                System.out.println("list length :" + jobOpenings.size());
-//                if (jobOpenings.isEmpty()) {
-//                    mainFrame.showResultPanel(EventType.RETURN_OPENING_NOT_FOUND, null);
-//                } else {
-//                   mainFrame.showResultPanel(EventType.RETURN_FOUND_OPENINGS, jobOpenings);
-//                }
-//            }
-//            case REQUEST_ADD_SEEKER, REQUEST_ADD_OPENING -> {
-//                mainFrame.showAdderPanel(option);
-//            }
-//            case REQUEST_SEARCH_SEEKER, REQUEST_SEARCH_OPENING -> {
-//                mainFrame.showSearchPanel(option);
-//            }
-//            case RETURN_SEARCH_SEEKER, RETURN_SEARCH_OPENING -> {
-//                search(option, data);
-//            }
-//            case RETURN_SEEKER_NOT_FOUND, RETURN_OPENING_NOT_FOUND, RETURN_FOUND_OPENINGS, RETURN_FOUND_SEEKERS -> {
-//                System.out.println("in found, eventType is: " );
-//                if (option.getAction() == EventType.Action.CONFIRM_SUCCESS && option.getQuantity() == EventType.Quantity.MULTIPLE) {
-//                    EventType returnEventType = EventType.RETURN_OPTIONS;
-//                        if (waitingForMatchResults) {
-//                            returnEventType.setAction(EventType.Action.MATCH);
-//                            mainFrame.showResultPanel(returnEventType, data);
-//                        }
-//                        else if (waitingForMatchOptions){
-//                            mainFrame.showMatchPanel(returnEventType, data);
-//                        }
-//                        else if (waitingForRemove) {
-//                            returnEventType.setAction(EventType.Action.REMOVE);
-//                            mainFrame.showRemovePanel(returnEventType, data);
-//                        } else if (waitingForEdit) {
-//                            returnEventType.setAction(EventType.Action.EDIT);
-//                            mainFrame.showEditPanel(returnEventType, data);
-//                        } else {
-//                            mainFrame.showResultPanel(option, data);
-//                        }
-//                }
-//                else {
-//                    mainFrame.showResultPanel(option, data);
-//                }
-//
-//            }
-//            case REQUEST_MATCH_OPENING, REQUEST_MATCH_SEEKER -> {
-//                mainFrame.showMatchPanel(option, data);
-//            }
-//            case RETURN_ADD_SEEKER -> {
-//                JobSeeker newSeeker = createNewSeeker(data);
-//                matchingService.addSeeker(newSeeker);
-//
-//            }
-//            case RETURN_ADD_OPENING -> {
-//               JobOpening newOpening = createNewOpening(data);
-//                matchingService.addJobOpening(newOpening);
-//            }
-//                case REQUEST_EDIT_OPENING, REQUEST_EDIT_SEEKER -> {
-//                    if (option.getStatus() == EventType.Status.HAS_INPUT) {
-//
-//                    } else {
-//                        mainFrame.showEditPanel(option, data);
-//                    }
-//                }
-//            case RETURN_EDITING_OPENING, RETURN_EDITING_SEEKER  -> {
-//                waitingForEdit = true;
-//                search(option, data);
-//            }
-//            case RETURN_EDIT_THIS_OPENING ->{
-//                if (data instanceof String[]) {
-//                    newInfo = (String[]) data;
-//                }
-//                if (data instanceof JobOpening jobOpening){
-//                    editOpening(jobOpening, newInfo);
-//                }
-//            }
-//            case RETURN_EDIT_THIS_SEEKER -> {
-//                System.out.println("EDIT_THIS_SEEKER in applicationManager is reached. Data is: " + data.getClass());
-//               if (data instanceof String[]) {
-//                   newInfo = (String[]) data;
-//                }
-//                if (data instanceof JobSeeker seeker){
-//                    editSeeker(seeker, newInfo);
-//                }
-//            }
-//            case REQUEST_REMOVE_OPENING, REQUEST_REMOVE_SEEKER -> {
-//                mainFrame.showRemovePanel(option, data);
-//            }
-//            case RETURN_REMOVE_SEEKER, RETURN_REMOVE_OPENING -> {
-//                this.waitingForRemove = true;
-//               search(option, data);
-//            }
-//            case RETURN_ADD_SUCCESSFUL-> {
-//                mainFrame.showResultPanel(option, data);
-//            }
-//            case RETURN_EDIT_SUCCESSFUL -> {
-//                mainFrame.showResultPanel(option, data);
-//                waitingForEdit = false;
-//            }
-//            case RETURN_REMOVE_SUCCESSFUL -> {
-//                mainFrame.showResultPanel(option, data);
-//                waitingForRemove = false;
-//            }
-//            case RETURN_MATCH -> {
-//                    waitingForMatchOptions = true;
-    ////                    System.out.println("In AppManager, Subject is: " + option.getSubject() + " & name is: " + (String) data);
-//                    search(option, data);
-//            }
-//            case RETURN_CHOICE -> {
-//                waitingForMatchResults = true;
-//                match(option, data);
-//            }
-//        }
-
-//
-//        if (eventType.getInputType() == EventType.InputType.STRICT) {
-//         strategyType = StrategyType.STRICT;
-//        }
-//        else if (inputType == EventType.InputType.FLEX){
-//            strategyType = StrategyType.FLEXIBLE;
-//        }
-//        else if (inputType == EventType.InputType.EDU){
-//            strategyType = StrategyType.EDUCATION_FOCUSED;
-//        }
-//        if (eventType.getSubject() == EventType.Subject.SEEKER) {
-//            JobSeeker seeker = (JobSeeker) data;
-//            name = seeker.getFullName();
-//            matchingService.matchCandidatesToJob(name, strategyType);
-//        }
-//        else if (eventType.getSubject() == EventType.Subject.OPENING){
-//            JobOpening opening = (JobOpening) data;
-//            name = opening.getTitle();
-//            matchingService.matchJobsToCandidate(name, strategyType);
-//        }
-
-
-    private void executeDelete(Object data){
-
-        if (data instanceof List list && list.getFirst() instanceof JobSeeker seeker){
-            matchingService.deleteSeeker(seeker.getId());
-        }
-        else if (data instanceof List list && list.getFirst() instanceof JobOpening opening){
-            matchingService.deleteJobOpening(opening.getId());
-        }
-    }
-
-    private void notifySubscribers(Event event) {
-        for (Subscriber subscriber : subscribers) {
-            subscriber.Update(event);
-        }
-    }
-    public void addSubscriber(Subscriber s) {
-        subscribers.add(s);
-    }
 }
-
-
-
-
-//    public void start() {
-//        boolean running = true;
-//        while (running) {
-//            int choice = readIntInput();
-//
-//            switch (choice) {
-//                case 1:
-//                    handleSeekers();
-//                    break;
-//                case 2:
-//                    handleJobs();
-//                    break;
-//                case 3:
-//                    handleMatching();
-//                    break;
-//                case 4:
-//                    running = false;
-//                    System.out.println("Goodbye!");
-//                    break;
-//                default:
-//                    System.out.println("Invalid option, please try again.");
-//            }
-//        }
-//    }
-
-//
-
-//
-//
-//
-//    private void findSeeker() {
-//        System.out.println("\n--- Find Seeker by Name ---");
-//        System.out.print("Enter Name: ");
-//        String name = scanner.nextLine();
-//        List<JobSeeker> results = matchingService.findSeekersByName(name);
-//        if (results.isEmpty()) {
-//            System.out.println("No seekers found.");
-//        } else {
-//            for (JobSeeker js : results) {
-//                System.out.println(js);
-//            }
-//        }
-//    }
-//
-//    private void updateSeeker() {
-//        System.out.println("\n--- Update Job Seeker ---");
-//        System.out.print("Enter Seeker ID to update: ");
-//        String id = scanner.nextLine();
-//
-//        System.out.print("Enter new Full Name: ");
-//        String name = scanner.nextLine();
-//
-//        System.out.println("Select Education Level:");
-//        for (EducationLevel level : EducationLevel.values()) {
-//            System.out.println(level.ordinal() + ". " + level);
-//        }
-//        System.out.print("Choice: ");
-//        int eduIdx = readIntInput();
-//        EducationLevel edu = EducationLevel.values()[eduIdx];
-//
-//        System.out.print("Enter years of experience: ");
-//        int experience = readIntInput();
-//
-//        System.out.print("Enter work area (e.g. Software, Sales): ");
-//        String workArea = scanner.nextLine();
-//
-//        JobSeeker updatedSeeker = new JobSeeker(id, name, edu, experience, workArea);
-//        matchingService.updateSeeker(updatedSeeker);
-//        System.out.println("Seeker updated (if ID existed).");
-//    }
-//
-//    private void deleteSeeker() {
-//        System.out.println("\n--- Delete Job Seeker ---");
-//        System.out.print("Enter Seeker ID to delete: ");
-//        String id = scanner.nextLine();
-//        matchingService.deleteSeeker(id);
-//        System.out.println("Seeker deleted (if ID existed).");
-//    }
-//
-//    // --- Job Opening Management ---
-//    private void handleJobs() {
-//        boolean back = false;
-//        while (!back) {
-//            System.out.println("\n--- Manage Job Openings ---");
-//            System.out.println("1. List All Jobs");
-//            System.out.println("2. Add new Job");
-//            System.out.println("3. Find Job by Title");
-//            System.out.println("4. Update Job");
-//            System.out.println("5. Delete Job");
-//            System.out.println("6. Back to Main Menu");
-//            System.out.print("Enter choice: ");
-//
-//            int choice = readIntInput();
-//            switch (choice) {
-//                case 1:
-//                    listJobs();
-//                    break;
-//                case 2:
-//                    addJob();
-//                    break;
-//                case 3:
-//                    findJob();
-//                    break;
-//                case 4:
-//                    updateJob();
-//                    break;
-//                case 5:
-//                    deleteJob();
-//                    break;
-//                case 6:
-//                    back = true;
-//                    break;
-//                default:
-//                    System.out.println("Invalid option.");
-//            }
-//        }
-//    }
-//
-//    // --- Job Opening Helper Methods ---
-//    private void listJobs() {
-//        List<JobOpening> jobs = matchingService.getAllJobOpenings();
-//        if (jobs.isEmpty()) {
-//            System.out.println("No job openings found.");
-//        } else {
-//            System.out.println("\n--- Job Openings ---");
-//            for (JobOpening job : jobs) {
-//                System.out.println(job);
-//            }
-//        }
-//    }
-//
-//    private void addJob() {
-//        System.out.println("\n--- Add Job Opening ---");
-//        System.out.print("Enter Job Title: ");
-//        String title = scanner.nextLine();
-//
-//        System.out.println("Select Required Education Level:");
-//        for (EducationLevel level : EducationLevel.values()) {
-//            System.out.println(level.ordinal() + ". " + level);
-//        }
-//        System.out.print("Choice: ");
-//        int eduIdx = readIntInput();
-//        EducationLevel edu = EducationLevel.values()[eduIdx];
-//
-//        System.out.print("Enter minimum years of experience: ");
-//        int experience = readIntInput();
-//
-//        System.out.print("Enter work area: ");
-//        String workArea = scanner.nextLine();
-//
-//        JobOpening newJob = new JobOpening(title, edu, experience, workArea);
-//        matchingService.addJobOpening(newJob);
-//        System.out.println("Job Opening added with ID: " + newJob.getId());
-//    }
-//
-//    private void findJob() {
-//        System.out.println("\n--- Find Job by Title ---");
-//        System.out.print("Enter title (partial matches allowed): ");
-//        String title = scanner.nextLine();
-//        List<JobOpening> jobs = matchingService.findJobOpeningsByTitle(title);
-//        if (jobs.isEmpty()) {
-//            System.out.println("No jobs found.");
-//        } else {
-//            for (JobOpening job : jobs) {
-//                System.out.println(job);
-//            }
-//        }
-//    }
-//
-//    private void updateJob() {
-//        System.out.println("\n--- Update Job Opening ---");
-//        System.out.print("Enter Job ID to update: ");
-//        String id = scanner.nextLine();
-//
-//        System.out.print("Enter new Title: ");
-//        String title = scanner.nextLine();
-//
-//        System.out.println("Select Required Education Level:");
-//        for (EducationLevel level : EducationLevel.values()) {
-//            System.out.println(level.ordinal() + ". " + level);
-//        }
-//        System.out.print("Choice: ");
-//        int eduIdx = readIntInput();
-//        EducationLevel edu = EducationLevel.values()[eduIdx];
-//
-//        System.out.print("Enter minimum years of experience: ");
-//        int experience = readIntInput();
-//
-//        System.out.print("Enter work area: ");
-//        String workArea = scanner.nextLine();
-//
-//        JobOpening updatedJob = new JobOpening(id, title, edu, experience, workArea);
-//        matchingService.updateJobOpening(updatedJob);
-//        System.out.println("Job updated (if ID existed).");
-//    }
-//
-//    private void deleteJob() {
-//        System.out.println("\n--- Delete Job Opening ---");
-//        System.out.print("Enter Job ID to delete: ");
-//        String id = scanner.nextLine();
-//        matchingService.deleteJobOpening(id);
-//        System.out.println("Job Opening deleted (if ID existed).");
-//    }
-//
-//    // --- Matching Management ---
-//    private void handleMatching() {
-//        boolean back = false;
-//        while (!back) {
-//            System.out.println("\n--- Match Jobs ---");
-//            System.out.println("1. Match Recommendations for a Seeker");
-//            System.out.println("2. Find Candidates for a Job");
-//            System.out.println("3. Back to Main Menu");
-//            System.out.print("Enter choice: ");
-//
-//            int choice = readIntInput();
-//            switch (choice) {
-//                case 1:
-//                    matchForSeeker();
-//                    break;
-//                case 2:
-//                    matchForJob();
-//                    break;
-//                case 3:
-//                    back = true;
-//                    break;
-//                default:
-//                    System.out.println("Invalid option.");
-//            }
-//        }
-//    }
-//
-//
-//    private void matchForSeeker() {
-//        System.out.println("\n--- Match Jobs for a Candidate ---");
-//        System.out.print("Enter Seeker ID: ");
-//        String seekerId = scanner.nextLine();
-//
-//        StrategyType strategy = selectStrategy();
-//
-//        List<MatchResult> results = matchingService.matchJobsToCandidate(seekerId, strategy);
-//        displayResults(results);
-//
-//        saveReportPrompt(results);
-//    }
-//
-//    private void matchForJob() {
-//        System.out.println("\n--- Match Candidates for a Job ---");
-//        System.out.print("Enter Job Opening ID: ");
-//        String jobId = scanner.nextLine();
-//
-//        StrategyType strategy = selectStrategy();
-//
-//        List<MatchResult> results = matchingService.matchCandidatesToJob(jobId, strategy);
-//        displayResults(results);
-//
-//        saveReportPrompt(results);
-//    }
-//
-//    private StrategyType selectStrategy() {
-//        System.out.println("Select Matching Strategy:");
-//        System.out.println("1. Standard (Strict)");
-//        System.out.println("2. Flexible (Fuzzy)");
-//        System.out.println("3. Education Focused");
-//        System.out.print("Choice: ");
-//        int choice = readIntInput();
-//        switch (choice) {
-//            case 2:
-//                return StrategyType.FLEXIBLE;
-//            case 3:
-//                return StrategyType.EDUCATION_FOCUSED;
-//            default:
-//                return StrategyType.STRICT;
-//        }
-//    }
-//
-//    private void displayResults(List<MatchResult> results) {
-//        if (results.isEmpty()) {
-//            System.out.println("No matches found.");
-//        } else {
-//            System.out.println("\n--- Match Results ---");
-//            for (MatchResult result : results) {
-//                System.out.println("Score: " + result.getScore() + " | " +
-//                        result.getJobSeeker().getFullName() + " <-> " +
-//                        result.getJobOpening().getTitle());
-//            }
-//        }
-//    }
-//
-//    private void saveReportPrompt(List<MatchResult> results) {
-//        if (results.isEmpty())
-//            return;
-//
-//        System.out.print("Save report to file? (y/n): ");
-//        String ans = scanner.nextLine();
-//        if (ans.equalsIgnoreCase("y")) {
-//            System.out.print("Enter filename (e.g., report.txt): ");
-//            String filename = scanner.nextLine();
-//            matchingService.saveMatchReport(results, filename);
-//        }
-//    }
-//
-//    // helper to read int safely
-//    private int readIntInput() {
-//        try {
-//            String line = scanner.nextLine();
-//            return Integer.parseInt(line);
-//        } catch (NumberFormatException e) {
-//            return -1;
-//        }
-//    }
-//    }
-
 

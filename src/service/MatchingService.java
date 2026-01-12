@@ -13,7 +13,6 @@ import repository.JobSeekerRepository;
 import strategy.MatchingStrategy;
 import strategy.MatchingStrategyFactory;
 import strategy.StrategyType;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -21,7 +20,6 @@ import java.util.List;
 
 public class MatchingService {
     private ApplicationManager applicationManager;
-
     private final JobSeekerRepository seekerRepo;
     private final JobOpeningRepository openingRepo;
     private Event event;
@@ -116,7 +114,6 @@ public class MatchingService {
         // 5. Sort by score (highest first)
         results.sort(Comparator.comparingInt(MatchResult::getScore).reversed());
 
-        System.out.println("          results.size is" + results.size());
         if (!results.isEmpty()) {
             Event.Outcome outcome = Event.Outcome.OK;
             saveMatchReport(results, jobOpeningId+".txt");
@@ -132,7 +129,6 @@ public class MatchingService {
 
     // Matches a candidate to all job openings
     public void matchJobsToCandidate(String jobSeekerId, StrategyType strategyType) {
-        System.out.println("matchJobstocandidate is reached");
         // 1. Get the job seeker
         JobSeeker seeker = seekerRepo.findById(jobSeekerId).orElse(null);
         if (seeker == null) {
@@ -154,9 +150,7 @@ public class MatchingService {
                 results.add(result);
             }
         }
-
         // 5. Sort by score (highest first)
-        System.out.println("results.size is: " + results.size());
         if (results.isEmpty()) {
             Event.Outcome outcome = Event.Outcome.NOT_FOUND;
             returnResult(outcome, results, Event.Phase.MATCH_RESULT);
@@ -177,9 +171,13 @@ public class MatchingService {
     // saves the match results to a file for reporting
     public void saveMatchReport(List<MatchResult> results, String filename) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(filename))) {
+            String name = ";";
             writer.println("=== MATCH REPORT ===");
             for (MatchResult result : results) {
-                writer.println("Candidate: " + result.getJobSeeker().getFullName());
+               if (event.getSubject() == Event.Subject.OPENING){
+                        name = "Candidate: " + result.getJobSeeker().getFullName();
+                        writer.println(name);
+                    }
                 writer.println("Job: " + result.getJobOpening().getTitle());
                 writer.println("Score: " + result.getScore());
                 writer.println("-------------------------");
@@ -206,7 +204,6 @@ public class MatchingService {
 
     public void Update(Event event){
         this.event = event;
-        System.out.println("UPDATE in MatchingService was reached");
         this.action = event.getAction();
         this.subject = event.getSubject();
         this.phase = event.getPhase();
@@ -258,12 +255,21 @@ public class MatchingService {
                 }
             }
             case REMOVE -> {
-                String ID = (String) event.getContents();
-                if (subject == Event.Subject.SEEKER){
-                    deleteSeeker(ID);
-                }
-                else if (subject == Event.Subject.OPENING) {
-                    deleteJobOpening(ID);
+                if (event.getPhase() == Event.Phase.SUBMIT) {
+                    String name = (String) event.getContents();
+                    if (event.getSubject() == Event.Subject.SEEKER) {
+                        findSeekersByName(name);
+                    }
+                    else if (event.getSubject() == Event.Subject.OPENING){
+                        findJobOpeningsByTitle(name);
+                    }
+                } else if (event.getPhase() == Event.Phase.SELECT) {
+                    String ID = (String) event.getExtraContents();
+                    if (subject == Event.Subject.SEEKER) {
+                        deleteSeeker(ID);
+                    } else if (subject == Event.Subject.OPENING) {
+                        deleteJobOpening(ID);
+                    }
                 }
             }
             case MATCH -> {
@@ -279,7 +285,6 @@ public class MatchingService {
                     }
                     case MATCH_STRATEGY_SELECTED -> {
                         StrategyType strategy = (StrategyType) event.getExtraContents();
-                        System.out.println("in MatchingService, strategy is: " + strategy);
                         if (event.getSubject() == Event.Subject.SEEKER){
                             JobSeeker seeker = (JobSeeker) event.getContents();
                             matchJobsToCandidate(seeker.getId(), strategy);

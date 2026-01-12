@@ -3,8 +3,6 @@ package GUI;
 import Controller.Event;
 import model.JobOpening;
 import model.JobSeeker;
-
-import javax.naming.ldap.Control;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
@@ -19,53 +17,51 @@ public class ResultPanel extends JPanel implements Subscriber {
     List<JobSeeker> jobSeekerList = new ArrayList<>();
     private JobOpening jobOpening;
     private JobSeeker jobSeeker;
-    private String[] allUserinput;
-    int totalCount;
+    private JTextArea resultArea;
+    boolean scroll;
 
-    public ResultPanel(MainFrame mainFrame, Controller.Event event, PanelDecorator decorator){
+    public ResultPanel(MainFrame mainFrame, Controller.Event event, PanelDecorator decorator, boolean scroll){
         this.mainFrame = mainFrame;
         this.event = event;
         this.decorator = decorator;
-
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        this.scroll = true;
+        getData(event.getContents());
+        setLayout(new BorderLayout());
         setMinimumSize(new Dimension(550, 500));
         setBackground(Colors.getBackgroundColor());
-        setLayout(new BorderLayout());
         if (centerPanel == null){
             this.centerPanel = new JPanel();
         }
         else if (centerPanel != null){
             centerPanel.removeAll();
         }
-        centerPanel.setLayout(new BorderLayout());
+        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
         centerPanel.setBackground(Colors.getBackgroundColor());
         HeaderPanel headerPanel = new HeaderPanel(decorator, event);
-        if (event.getOutcome() != Event.Outcome.FAILURE && event.getOutcome() != Event.Outcome.NOT_FOUND) {
-            getData(event.getContents());
-            checkInput(event);
-        }
         add(headerPanel, BorderLayout.NORTH);
+        checkInput(event);
         add(centerPanel, BorderLayout.CENTER);
-
         setVisible(true);
         repaint();
         revalidate();
     }
     private void displayFoundTerm() {
-        System.out.println("displayfoundTerm was reached");
         centerPanel.removeAll();
-
-        JTextArea resultArea = new JTextArea();
+        this.resultArea = new JTextArea();
         String text = "";
+        if (event.getAction() == Event.Action.REMOVE){
+            text = (String) event.getContents();
+        }
+        if (event.getPhase() == Event.Phase.MATCH_RESULT){
+            text = (String) event.getContents();
+        }
         if (jobSeeker != null) {
             text = jobSeeker.printout();
-
         }
         else if (jobOpening != null){
             text = jobOpening.printout();
         }
         resultArea.setText(text);
-
         JPanel wrapperPanel = new JPanel();
         getTextArea(wrapperPanel, text);
         wrapperPanel.setBorder(
@@ -97,34 +93,16 @@ public class ResultPanel extends JPanel implements Subscriber {
     }
 
     private void getTextArea(JPanel wrapperPanel, String result) {
-        JTextArea resultArea = new JTextArea(10, 40);
-        resultArea.setBackground(Colors.getBorderColor());
-        resultArea.setEditable(false);
-        JScrollPane scrollResults = new JScrollPane(resultArea);
-        scrollResults.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scrollResults.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        resultArea.setText(result);
-        resultArea.setCaretPosition(0);
-        resultArea.setFont(Fonts.getButtonFont());
-        resultArea.setForeground(Colors.getHeaderColor());
-        JPanel countPanel = new JPanel(new GridLayout(1, 3));
-        JLabel count = new JLabel("Total count:");
-        JTextArea showNumber = new JTextArea(String.valueOf(totalCount));
-        JPanel placeHolder = new JPanel();
-        placeHolder.setBackground(Colors.getBackgroundColor());
-
-        countPanel.add(count);
-        countPanel.add(showNumber);
-        countPanel.add(placeHolder);
-
-        decorator.adjustLabel(count);
-        decorator.adjustTextArea(showNumber);
-        wrapperPanel.add(countPanel, BorderLayout.NORTH);
-        wrapperPanel.add(scrollResults, BorderLayout.CENTER);
+        JTextArea resultArea = new JTextArea(result);
+        decorator.adjustTextArea(resultArea);
+        wrapperPanel.add(resultArea, BorderLayout.CENTER);
+        if (scroll){
+            addScrollBar(wrapperPanel, resultArea);
+        };
     }
 
     private void getData(Object data){
-        if (data != null && data instanceof List list){
+        if (data != null && data instanceof ArrayList list){
             if (list.getFirst() instanceof JobSeeker){
                 this.jobSeekerList = list;
             }
@@ -140,49 +118,71 @@ public class ResultPanel extends JPanel implements Subscriber {
         }
     }
     private String getPrintout(boolean showSeekers){
-        System.out.println("getPrintout is reached");
         StringBuilder printout = new StringBuilder();
+        if (event.getPhase() == Event.Phase.MATCH_RESULT){
+            if (event.getContents() instanceof List list && list.getFirst() instanceof String){
+                List<String> results = (List<String>) event.getContents();
+                for (String line : results){
 
-        if (showSeekers){
+                    String [] parts = line.split(";");
+                    for (int i = 0; i < parts.length; i++){
+                        printout.append(parts[i]);
+                    }
+                    printout.append("\n\n");
+                }
+            }
+        }
+        else if (showSeekers){
             for (JobSeeker seeker : jobSeekerList){
-                totalCount+=1;
                 printout.append(seeker.printout());
                 printout.append("\n\n");
             }
         }
         else {
             for (JobOpening opening : jobOpeningList){
-                totalCount+=1;
                 printout.append(opening.printout());
                 printout.append("\n\n");
-                System.out.println("opening.toDataString is: " + opening);
             }
         }
-        System.out.println("Printout is: " + printout);
         return printout.toString();
     }
 
     public void checkInput(Controller.Event event) {
-        System.out.println("checkInput is reached");
         this.event = event;
+
         if (event.getAction() == Event.Action.VIEW){
             displayList(event);
         }
-        else if(event.getAction() == Event.Action.SEARCH){
-                if (jobOpening != null || jobSeeker != null) {
-                    displayFoundTerm();
-                }
-                else {
-                    displayList(event);
-                }
-            }
-        else if (event.getAction() == Event.Action.EDIT && event.getOutcome() == Event.Outcome.OK) {
+        else if (event.getAction() == Event.Action.REMOVE || event.getAction() == Event.Action.ADD){
             displayFoundTerm();
         }
+        else if(event.getAction() == Event.Action.SEARCH){
+            if (jobOpening != null || jobSeeker != null) {
+                displayFoundTerm();
+            }
             else {
                 displayList(event);
             }
         }
+        else if (event.getAction() == Event.Action.EDIT && event.getOutcome() == Event.Outcome.OK) {
+            displayFoundTerm();
+        }
+        else {
+            displayList(event);
+        }
+    }
+    public void addScrollBar(JPanel wrapperPanel, JTextArea resultArea){
+        JScrollPane scrollResults = new JScrollPane(resultArea);
+        scrollResults.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollResults.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollResults.setPreferredSize(new Dimension(550, 400));
+        SwingUtilities.invokeLater(() ->
+                scrollResults.getVerticalScrollBar().setValue(0)
+        );
+        wrapperPanel.add(scrollResults);
+        repaint();
+        revalidate();
+    }
 
     @Override
     public void Update(Controller.Event event) {

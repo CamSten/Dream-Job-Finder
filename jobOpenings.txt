@@ -3,3 +3,5 @@
 2003;Projektledare inom IT;MASTER;8;Management
 2004;Forskningsassistent;PHD;2;Research
 2005;IT-Support;HIGH_SCHOOL;0;IT
+9114;Engineer;PHD;50;Engineering
+6420;Chef;BACHELOR;12;Cooking

@@ -4,7 +4,6 @@ import Controller.Event;
 import model.EducationLevel;
 import model.JobOpening;
 import model.JobSeeker;
-
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
@@ -24,10 +23,6 @@ public class MultipleInputPanel extends JPanel implements Subscriber {
     private JComboBox inputEdu;
 
     public MultipleInputPanel(MainFrame mainFrame, Event event, PanelDecorator decorator){
-        System.out.println("MultipleInputPanel is reached");
-        if (event.getContents() != null){
-            System.out.println("contents are: " + event.getContents().getClass());
-        }
         this.mainFrame = mainFrame;
         this.decorator = decorator;
         this.event = event;
@@ -80,7 +75,6 @@ public class MultipleInputPanel extends JPanel implements Subscriber {
         return submitButton;
     }
     public List<JLabel> getInputPromptsSeeker(){
-        System.out.println("getInputPromptsSeeker is reached");
         allLabels = new ArrayList<>();
         JLabel promptName = new JLabel("Name: ");
         allLabels.add(promptName);
@@ -88,7 +82,6 @@ public class MultipleInputPanel extends JPanel implements Subscriber {
         allLabels.add(promptExp);
         JLabel promptBranch = new JLabel("Work area: ");
         allLabels.add(promptBranch);
-        System.out.println("in getInputPromptsSeeker, list.size is: " + allLabels.size());
         return allLabels;
     }
     public List<JLabel> getInputPromptOpening(){
@@ -99,7 +92,6 @@ public class MultipleInputPanel extends JPanel implements Subscriber {
         allLabels.add(promptExp);
         JLabel promptBranch = new JLabel("Work area: ");
         allLabels.add(promptBranch);
-        System.out.println("in getInputPromptOpening, allLabels.size is: " + allLabels.size());
         return allLabels;
     }
 
@@ -119,7 +111,6 @@ public class MultipleInputPanel extends JPanel implements Subscriber {
 
     public void setInputText(Object data){
         this.allInitialUserInput = new String[allInputFields.size()+1];
-        System.out.println("setInputText in PanelMaker is reached");
         if (data instanceof JobOpening opening){
             List<String> openingInfo = new ArrayList<>();
             openingInfo.add(opening.getTitle());
@@ -185,13 +176,8 @@ public class MultipleInputPanel extends JPanel implements Subscriber {
         return getAdjustedInputPanel(promptEdu, inputEdu);
     }
     public EducationLevel getEduValue(){
-        System.out.println("getEduValue is reached. subject is: " + event.getSubject());
-        if (event.getContents() != null){
-            System.out.println("contents are: " + event.getContents().getClass());
-        }
         EducationLevel eduValue = null;
         if(event.getContents() instanceof JobSeeker jobSeeker){
-            System.out.println("eduValue is: " + jobSeeker.getEducationLevel());
             eduValue = jobSeeker.getEducationLevel();
         }
         else if (event.getContents() instanceof JobOpening jobOpening){
@@ -211,6 +197,14 @@ public class MultipleInputPanel extends JPanel implements Subscriber {
                 JOptionPane.showMessageDialog(null, "The form has not been completed.");
             }
         }
+
+        try {
+         Integer.parseInt(allUserinput[1]);
+        }
+        catch (NumberFormatException e) {
+                completed = false;
+            JOptionPane.showMessageDialog(null, "You may only submit a number value for Experience");
+            }
         if (completed) {
             Object contents = allUserinput;
             Object extraContentents = null;
@@ -224,6 +218,9 @@ public class MultipleInputPanel extends JPanel implements Subscriber {
 
     @Override
     public void Update(Event event) {
+        if (event.getAction() == Event.Action.ADD){
+            event.setPhase(Event.Phase.HANDLING);
+        }
         mainFrame.Update(event);
     }
 }

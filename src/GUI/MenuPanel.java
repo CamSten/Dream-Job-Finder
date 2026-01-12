@@ -2,7 +2,6 @@ package GUI;
 
 import Controller.Event;
 import strategy.StrategyType;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;

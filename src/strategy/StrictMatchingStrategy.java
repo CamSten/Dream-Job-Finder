@@ -9,7 +9,6 @@ public class StrictMatchingStrategy implements MatchingStrategy {
     // this strategy is strict - everything must match to get a score
     @Override
     public MatchResult match(JobSeeker jobSeeker, JobOpening jobOpening) {
-        System.out.println("strict match is reached");
         MatchResult result = new MatchResult(jobSeeker, jobOpening);
         int score = 0;
 

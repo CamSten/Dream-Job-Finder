@@ -1,11 +1,6 @@
 package GUI;
 
 import Controller.Event;
-import model.JobOpening;
-import model.JobSeeker;
-
-import java.util.List;
-
 public class Terms {
     private Event.Subject subject;
     private Event.Action action;
@@ -54,7 +49,6 @@ public class Terms {
                 this.actionTerm = "Matching";
                 this.completedVerb = "matched";
             }
-
         }
     }
     public String getTerm() {
@@ -63,7 +57,6 @@ public class Terms {
     public String getPromptTerm() {
         return promptTerm;
     }
-
     public String getImperativeActionTerm() {
         return imperativeActionTerm;
     }
