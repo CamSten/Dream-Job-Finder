@@ -6,102 +6,36 @@ import GUI.Subscriber;
 import model.JobOpening;
 import model.JobSeeker;
 
-import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
-public class FileJobOpeningRepository implements JobOpeningRepository {
-    private final String filePath = "jobOpenings.txt";
-    private ApplicationManager applicationManager;
+public class FileJobOpeningRepository extends FileRepository<JobOpening> implements JobOpeningRepository {
 
-    public FileJobOpeningRepository(ApplicationManager applicationManager) {
-        this.applicationManager = applicationManager;
-        System.out.println("FileJobOpeningRepository constructor is reached");
-        ensureFileExists();
-    }
-
-    // checks if file exists so we dont get error
-    private void ensureFileExists() {
-        System.out.println("ensureFileExists in FJOR is reached");
-
-        try {
-            File file = new File(filePath);
-            if (!file.exists()) {
-                System.out.println("file did not exist");
-                file.createNewFile();
-            }
-            else {
-                System.out.println("file exits");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // saves the job opening to the list and then to file
-    @Override
-    public void save(JobOpening jobOpening) {
-        System.out.println("save in JobOpeningRepo is reached");
-        Event.Phase newPhase = Event.Phase.COMPLETE;
-        List<JobOpening> all = findAll();
-        boolean exists = false;
-        Event.Outcome outcome = Event.Outcome.ALREADY_EXISTS;
-        for (int i = 0; i < all.size(); i++) {
-            if (all.get(i).getId().equals(jobOpening.getId())) {
-                all.set(i, jobOpening);
-                exists = true;
-                break;
-            }
-        }
-        if (!exists) {
-            all.add(jobOpening);
-            outcome = Event.Outcome.OK;
-        }
-        System.out.println("newPhase is: " + newPhase);
-        applicationManager.Update(new Event(newPhase, Event.Action.ADD, Event.Subject.OPENING, Event.Origin.LOGIC, outcome, jobOpening, null));
-        writeAll(all);
+    public FileJobOpeningRepository(String filePath) {
+        super(filePath);
     }
 
     @Override
-    public Optional<JobOpening> findById(String id) {
-        return findAll().stream()
-                .filter(job -> job.getId().equals(id))
-                .findFirst();
+    protected String getId(JobOpening job) {
+        return job.getId();
     }
 
-    // reads everything from the file and returns a list
     @Override
-    public List<JobOpening> findAll() {
-        System.out.println("findAll in FJOR is reached. FilePath is: " + filePath);
-        List<JobOpening> jobs = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (!line.trim().isEmpty()) {
-                    jobs.add(JobOpening.fromDataString(line));
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("Could not read file: " + e.getMessage());
-        }
-        System.out.println("in FJOR findAll, jobs.size is: " + jobs.size());
-        return jobs;
+    protected JobOpening fromDataString(String line) {
+        return JobOpening.fromDataString(line);
     }
 
-    // updates the job opening
     @Override
-    public void update(JobOpening jobOpening) {
-        save(jobOpening);
+    protected String toDataString(JobOpening job) {
+        return job.toDataString();
     }
 
-    // filters list by title
+    //Finds an opening by title
     @Override
     public List<JobOpening> findByTitle(String title) {
-        List<JobOpening> all = findAll();
         List<JobOpening> found = new ArrayList<>();
 
-        for (JobOpening j : all) {
+        for (JobOpening j : findAll()) {
             if (j.getTitle().toLowerCase().contains(title.toLowerCase())) {
                 found.add(j);
             }
@@ -117,10 +51,8 @@ public class FileJobOpeningRepository implements JobOpeningRepository {
         if (removed) {
             writeAll(all);
             System.out.println("Deleted job with ID: " + id);
-
         } else {
             System.out.println("ID not found: " + id);
-
         }
     }
 
@@ -134,5 +66,4 @@ public class FileJobOpeningRepository implements JobOpeningRepository {
             System.err.println("Could not write file: " + e.getMessage());
         }
     }
-
 }
