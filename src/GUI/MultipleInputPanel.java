@@ -35,6 +35,7 @@ public class MultipleInputPanel extends JPanel implements Subscriber {
         add(getMultipleInputPanel(event), BorderLayout.CENTER);
     }
     public JPanel getMultipleInputPanel(Controller.Event event) {
+        setBackground(Colors.getHeaderColor());
         this.allInputFields = getFieldList(event.getContents());
         allLabels = new ArrayList<>();
         if(subject == Event.Subject.SEEKER){
@@ -135,6 +136,7 @@ public class MultipleInputPanel extends JPanel implements Subscriber {
     }
     public JPanel getAdjustedInputPanel (JLabel label, Object inputArea){
         JPanel inputPanel = new JPanel();
+        inputPanel.setBackground(Colors.getHeaderColor());
         JPanel queryPanel = new JPanel();
         queryPanel.setLayout(new GridLayout(1, 2));
         queryPanel.setBorder(BorderFactory.createLineBorder(Colors.getBorderColor(), 5, true));

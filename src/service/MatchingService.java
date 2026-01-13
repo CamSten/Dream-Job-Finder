@@ -2,12 +2,9 @@ package service;
 
 import Controller.ApplicationManager;
 import Controller.Event;
-import GUI.Subscriber;
 import model.JobOpening;
 import model.JobSeeker;
 import model.MatchResult;
-import repository.FileJobOpeningRepository;
-import repository.FileJobSeekerRepository;
 import repository.JobOpeningRepository;
 import repository.JobSeekerRepository;
 import strategy.MatchingStrategy;
