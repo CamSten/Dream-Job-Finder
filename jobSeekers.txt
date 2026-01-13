@@ -5,7 +5,6 @@
 1005;Erik Eriksson;HIGH_SCHOOL;1;IT
 5595;Beeboo;BACHELOR;10;Supervising
 9051;John Doe;MASTER;55;Football
-9362;Beebs;BACHELOR;12;Aviation
 5278;Cami3;HIGH_SCHOOL;44;Administration
 1056;Cami5;MASTER;11;Administration
 7170;Beeberino;BACHELOR;14;Administration

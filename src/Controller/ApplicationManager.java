@@ -19,16 +19,14 @@ public class ApplicationManager implements Subscriber {
     private MatchingService matchingService;
     private JobOpeningRepository openingRepo;
     private JobSeekerRepository seekerRepo;
-    private boolean waitingForEdit = false;
-    private boolean waitingForRemove = false;
-    private boolean waitingForMatchResults = false;
-    private boolean waitingForMatchOptions = false;
+    private String openingFile = "jobOpenings.txt";
+    private String seekerFile = "jobSeekers.txt";
     private String[] newInfo;
 
     public ApplicationManager() {
         mainFrame = new MainFrame(this);
-        this.openingRepo = new FileJobOpeningRepository(this);
-        this.seekerRepo = new FileJobSeekerRepository(this);
+        this.openingRepo = new FileJobOpeningRepository(openingFile);
+        this.seekerRepo = new FileJobSeekerRepository(seekerFile);
         this.matchingService = new MatchingService(seekerRepo, openingRepo, this);
     }
 
