@@ -1,8 +1,6 @@
 package model;
 
-import javax.swing.plaf.PanelUI;
 import java.io.Serializable;
-import java.security.PublicKey;
 
 public class JobOpening implements Serializable {
     private final String id;
