@@ -37,10 +37,12 @@ public class MatchingService {
 
     public void addSeeker(JobSeeker seeker) {
         seekerRepo.save(seeker);
+        returnResult(Event.Outcome.OK, seeker, phase);
     }
 
     public void addJobOpening(JobOpening opening) {
         openingRepo.save(opening);
+        returnResult(Event.Outcome.OK, opening, phase);
     }
 
     public void findSeekersByName(String name) {
@@ -49,7 +51,7 @@ public class MatchingService {
         if (results.isEmpty()){
             outcome = Event.Outcome.NOT_FOUND;
         }
-        returnResult( outcome, results, Event.Phase.DISPLAY);
+        returnResult(outcome, results, Event.Phase.DISPLAY);
     }
 
     public void updateSeeker(JobSeeker seeker) {
@@ -59,7 +61,6 @@ public class MatchingService {
 
     public void deleteSeeker(String id) {
         seekerRepo.delete(id);
-
         returnResult(Event.Outcome.OK, id, Event.Phase.COMPLETE);
     }
 
@@ -301,11 +302,12 @@ public class MatchingService {
         }
     }
     private void returnResult(Event.Outcome newoutcome, Object content, Event.Phase newphase){
-        Event.Origin origin = Event.Origin.LOGIC;
+        Event.Origin neworigin = Event.Origin.LOGIC;
         if (event.getPhase() == Event.Phase.MATCH_ENTER_TERM){
             newphase = Event.Phase.MATCH_TERM_SUBMITTED;
         }
-        applicationManager.Update(new Event(newphase, action, subject, origin, newoutcome, content, null));
+        Event newEvent = new Event(newphase, action, subject, neworigin, newoutcome, content, null);
+        applicationManager.Update(newEvent);
     }
 
 }
