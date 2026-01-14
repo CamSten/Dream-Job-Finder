@@ -1,6 +1,5 @@
 package repository;
 
-import Controller.Event;
 import model.JobSeeker;
 import java.util.List;
 import java.util.Optional;
