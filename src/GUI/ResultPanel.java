@@ -21,7 +21,6 @@ public class ResultPanel extends JPanel implements Subscriber {
     boolean scroll;
 
     public ResultPanel(MainFrame mainFrame, Controller.Event event, PanelDecorator decorator, boolean scroll){
-        System.out.println("ResultPanel constructor is reached");
         this.mainFrame = mainFrame;
         this.event = event;
         this.decorator = decorator;

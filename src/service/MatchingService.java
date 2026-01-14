@@ -201,7 +201,6 @@ public class MatchingService {
     }
 
     public void Update(Event event){
-        System.out.println("---Update in MatchingService is reached, eventPhase is: " + event.getPhase() + " & eventActions is" + event.getAction() + " & outcome is: " + event.getOutcome() + " & eventOrigin is: " + event.getOrigin());
         this.event = event;
         this.action = event.getAction();
         this.subject = event.getSubject();
@@ -308,8 +307,6 @@ public class MatchingService {
             newphase = Event.Phase.MATCH_TERM_SUBMITTED;
         }
         Event newEvent = new Event(newphase, action, subject, neworigin, newoutcome, content, null);
-        System.out.println("ReturnResult in MatchingService is reached, eventPhase is: " + newEvent.getPhase() + " & eventActions is" + newEvent.getAction() + " & outcome is: " + newEvent.getOutcome() + " & eventOrigin is: " + newEvent.getOrigin());
-
         applicationManager.Update(newEvent);
     }
 

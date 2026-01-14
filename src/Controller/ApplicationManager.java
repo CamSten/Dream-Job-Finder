@@ -31,10 +31,6 @@ public class ApplicationManager implements Subscriber {
     }
 
     public void Update(Event event) {
-        System.out.println("Update in AppManager is reached, eventPhase is: " + event.getPhase() + " & eventActions is" + event.getAction() + " & outcome is: " + event.getOutcome() + " & eventOrigin is: " + event.getOrigin());
-        if (event.getContents() != null){
-            System.out.println("data is: " + event.getContents().getClass());
-        }
         Event.Origin origin = event.getOrigin();
         switch (origin) {
             case GUI -> {
