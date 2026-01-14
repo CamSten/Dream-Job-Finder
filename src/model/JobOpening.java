@@ -100,7 +100,7 @@ public class JobOpening implements Serializable {
 
     // converts to string so we can save to text file
     public String toDataString() {
-        return id + ";" + title + ";" + requiredEducation + ";" + minYearsExperience + ";" + workArea;
+        return id + ";" + title + ";" + requiredEducation.name() + ";" + minYearsExperience + ";" + workArea;
     }
 
     // reads from text file line and creates object
