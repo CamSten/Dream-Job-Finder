@@ -1,14 +1,7 @@
 package repository;
 
-import Controller.ApplicationManager;
-import Controller.Event;
-import GUI.Subscriber;
 import model.JobOpening;
-import model.JobSeeker;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,29 +37,5 @@ public class FileJobOpeningRepository extends FileRepository<JobOpening> impleme
             }
         }
         return found;
-    }
-
-    // removes valid job opening by id
-    @Override
-    public void delete(String id) {
-        List<JobOpening> all = findAll();
-        boolean removed = all.removeIf(job -> job.getId().equals(id));
-        if (removed) {
-            writeAll(all);
-            System.out.println("Deleted job with ID: " + id);
-        } else {
-            System.out.println("ID not found: " + id);
-        }
-    }
-
-    // helper to save the whole list back to the file
-    private void writeAll(List<JobOpening> jobs) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
-            for (JobOpening job : jobs) {
-                writer.println(job.toDataString());
-            }
-        } catch (IOException e) {
-            System.err.println("Could not write file: " + e.getMessage());
-        }
     }
 }

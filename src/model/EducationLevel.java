@@ -1,8 +1,5 @@
 package model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public enum EducationLevel {
     NONE(0, "None"),
     HIGH_SCHOOL(1, "High school"),
