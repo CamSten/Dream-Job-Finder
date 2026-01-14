@@ -3,7 +3,6 @@
 1003;Carl Carlson;HIGH_SCHOOL;2;Sales
 1004;Desirée Dahl;PHD;3;Research
 1005;Erik Eriksson;HIGH_SCHOOL;1;IT
-5595;Beeboo;BACHELOR;10;Supervising
 9051;John Doe;MASTER;55;Football
 5278;Cami3;HIGH_SCHOOL;44;Administration
 1056;Cami5;MASTER;11;Administration
