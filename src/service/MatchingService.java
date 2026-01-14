@@ -59,6 +59,7 @@ public class MatchingService {
 
     public void deleteSeeker(String id) {
         seekerRepo.delete(id);
+
         returnResult(Event.Outcome.OK, id, Event.Phase.COMPLETE);
     }
 
@@ -78,7 +79,6 @@ public class MatchingService {
 
     public void deleteJobOpening(String id) {
         openingRepo.delete(id);
-    returnResult(Event.Outcome.OK, id, Event.Phase.COMPLETE);
     }
 
     public MatchingService(JobSeekerRepository seekerRepo, JobOpeningRepository openingRepo, ApplicationManager applicationManager) {
@@ -263,9 +263,14 @@ public class MatchingService {
                 } else if (event.getPhase() == Event.Phase.SELECT) {
                     String ID = (String) event.getExtraContents();
                     if (subject == Event.Subject.SEEKER) {
+                        JobSeeker seeker = (JobSeeker) event.getContents();
                         deleteSeeker(ID);
+                        returnResult(Event.Outcome.OK, seeker.getFullName(), Event.Phase.COMPLETE);
                     } else if (subject == Event.Subject.OPENING) {
+                        JobOpening opening = (JobOpening) event.getContents();
                         deleteJobOpening(ID);
+                        returnResult(Event.Outcome.OK, opening.getTitle(), Event.Phase.COMPLETE);
+
                     }
                 }
             }
