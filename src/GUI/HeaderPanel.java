@@ -18,6 +18,7 @@ public class HeaderPanel extends JPanel {
     private String pluralNoun = "";
     private String pluralVerb = "s";
     private String pluralHas = "s";
+    private String match = "";
     private int counter;
 
     public HeaderPanel(PanelDecorator decorator, Controller.Event event){
@@ -28,49 +29,27 @@ public class HeaderPanel extends JPanel {
         setLayout(new BorderLayout());
         setVisible(true);
         add(getHeaderPanel(), BorderLayout.CENTER);
-        if (event.getAction() == Event.Action.VIEW || event.getPhase() == Event.Phase.MATCH_RESULT)
-        {
+        if (event.getOutcome() == Event.Outcome.OK &&(event.getAction() == Event.Action.VIEW || event.getPhase() == Event.Phase.MATCH_RESULT)) {
             add(getCounter(), BorderLayout.SOUTH);
         }
     }
     private JPanel getHeaderPanel() {
+        System.out.println();
         JPanel headerPanel = new JPanel(new GridLayout(2,1));
         headerPanel.setBackground(Colors.getBackgroundColor());
-        JTextArea header = new JTextArea();
-        String text = "";
-        headerPanel.add(header);
-        if (event.getPhase() == Event.Phase.MATCH_RESULT){
-            if (event.getContents() instanceof List list && (!list.isEmpty())){
-            text = "The following match result has been found:";
-            }
-            else {
-            text = "No result was found";
-            }
-        }
 
-        else if (event.getAction() == Event.Action.CHOOSE_TYPE && event.getSubject() == Event.Subject.OPENING){
-            text = "Job opening";
-        }
-        else if (event.getAction() == Event.Action.CHOOSE_TYPE && event.getSubject() == Event.Subject.SEEKER) {
-            text = "Job seeker";
-        }
-        else if (event.getAction() == Event.Action.VIEW) {
-            text = "The following " + term + pluralNoun + " ha" + pluralHas + " been found:";
-        }
-        else if(event.getPhase() == Event.Phase.COMPLETE){
-            text = "The following " + term + pluralNoun + " ha" + pluralHas + " been " + completedVerb;
-        }
-        else {
-            text = actionTerm + " " + term;
-            String promptText = getHeaderTerm();
-            JTextArea prompt = new JTextArea(promptText);
-            decorator.adjustHeader(prompt);
-            headerPanel.add(prompt);
-        }
-        header.setText(text);
+        JTextArea header = new JTextArea(resolveHeaderText());
         header.setBackground(Colors.getBackgroundColor());
         header.setForeground(Colors.getHeaderColor());
         header.setFont(Fonts.getHeaderFont());
+        headerPanel.add(header);
+
+        String subHeaderText = resolveSubHeaderText();
+        if (resolveSubHeaderText() != null){
+            JTextArea subHeader = new JTextArea(subHeaderText);
+            decorator.adjustHeader(subHeader);
+            headerPanel.add(subHeader);
+        }
         return headerPanel;
     }
     private JPanel getCounter(){
@@ -86,39 +65,80 @@ public class HeaderPanel extends JPanel {
         wrapperPanel.setBackground(Colors.getBackgroundColor());
         return wrapperPanel;
     }
-    public String getHeaderTerm(){
-        String headerTerm = "";
-        Event.Origin origin = event.getOrigin();
-        switch (origin) {
-            case LOGIC -> {
-                if (event.getOutcome() != Event.Outcome.NOT_FOUND && event.getOutcome() != Event.Outcome.FAILURE) {
-                    if (event.getAction() == Event.Action.VIEW) {
-                        headerTerm = "The following" + term + "ha"+ pluralHas+ " been found:";
-                    }
-                    else {
-                        headerTerm = "The following " + term + pluralNoun + " contain" + pluralVerb + " your search term:";
-                    }
-                }
-                else {
-                    headerTerm = "No " + subject + " was found for " + actionTerm ;
+    private String resolveHeaderText() {
+        String text = actionTerm + " " + term;
+        if (event.getOrigin() == Event.Origin.LOGIC) {
+            if (event.getOutcome() == Event.Outcome.NOT_FOUND ||
+                    event.getOutcome() == Event.Outcome.FAILURE) {
+                text = getErrorHeader(event);
             }
+            else if (event.getAction() == Event.Action.VIEW){
+                text = "";
+            }
+        }
+        else if (event.getAction() == Event.Action.CHOOSE_TYPE ){
+            text = "";
+        }
+        return text;
+    }
 
-            }
-            case GUI -> {
-                if (event.getAction() == Event.Action.CHOOSE_TYPE && event.getSubject() == Event.Subject.OPENING) {
-                    headerTerm = "Job seeker";
-                }
-                else if (event.getAction() == Event.Action.EDIT && event.getContents() != null && (!(event.getContents() instanceof ArrayList))) {
-                    headerTerm = "Submit new input:";
-                }
-                else {
-                    headerTerm = "Input the " + promptTerm + " that you would like to " + imperativeActionTerm + ":";
-                }
-            }
+    private String resolveSubHeaderText() {
+        if (!shouldAddSubHeader()){
+            return null;
+        }
+        else if (event.getAction() == Event.Action.VIEW){
+            return getConfirmHeader();
+        }
+        else if (event.getPhase() == Event.Phase.SUBMIT || event.getPhase() == Event.Phase.SELECT){
+            return getInputHeader();
+        }
+        else {
+            return getConfirmHeader();
 
         }
-        return headerTerm;
     }
+    private boolean shouldAddSubHeader( ) {
+        return event.getAction() != Event.Action.CHOOSE_TYPE && event.getOutcome() == Event.Outcome.OK;
+    }
+    private String getConfirmHeader(){
+        String text = ";";
+        if (event.getAction() == Event.Action.VIEW) {
+            text = "The following " + term + pluralNoun + " ha"+ pluralHas + " been found:";
+        }
+        else if (event.getPhase() == Event.Phase.MATCH_RESULT){
+            if (event.getContents() instanceof List list && (!list.isEmpty())){
+                text = "The following match result has been found:";
+            }
+            else {
+                text = "No " + match + " result was found.";
+            }
+        }
+        else if(event.getPhase() == Event.Phase.COMPLETE || (event.getAction() == Event.Action.ADD && event.getPhase() == Event.Phase.HANDLING)){
+            text = "The following " + term + pluralNoun + " ha" + pluralHas + " been " + completedVerb + ":";
+        }
+        else {
+            text = "The following " + term + pluralNoun + " contain" + pluralVerb + " your search term:";
+        }
+        return text;
+    }
+
+    private String getErrorHeader(Event event){
+        return "No " + subject + " was found for " + actionTerm;
+    }
+
+    private String getInputHeader(){
+        String text = "";
+        if (event.getPhase() == Event.Phase.SELECT && event.getOrigin() == Event.Origin.GUI){
+            text = "Submit new input:";
+        }
+        //(event.getAction() == Event.Action.EDIT || event.getAction() == Event.Action.ADD)
+        else if (event.getPhase() == Event.Phase.SUBMIT)  {
+            text = "Input the " + promptTerm + " that you would like to " + imperativeActionTerm + ":";
+
+        }
+        return text;
+    }
+
     public void setTerms(Event event) {
         Terms terms = new Terms(event);
         this.term = terms.getTerm();
@@ -129,6 +149,7 @@ public class HeaderPanel extends JPanel {
         Object contents = event.getContents();
         if (event.getSubject() == Event.Subject.SEEKER){
             if (event.getAction() == Event.Action.MATCH) {
+                this.match = "match";
                 subject = "job opening";
             }
             else {
@@ -137,6 +158,7 @@ public class HeaderPanel extends JPanel {
         }
         else if (event.getSubject() == Event.Subject.OPENING){
             if (event.getAction() == Event.Action.MATCH) {
+                this.match = "match";
                 subject = "job seeker";
             }
             else {

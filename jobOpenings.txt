@@ -4,3 +4,5 @@
 2004;Forskningsassistent;PHD;2;Research
 2005;IT-Support;HIGH_SCHOOL;0;IT
 9114;Engineer;PHD;50;Engineering
+3645;Chief mouser;NONE;0;House keeping
+2997;Conductor;BACHELOR;2;Medicine

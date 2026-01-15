@@ -25,7 +25,6 @@ public class ResultPanel extends JPanel implements Subscriber {
         this.event = event;
         this.decorator = decorator;
         this.scroll = true;
-        getData(event.getContents());
         setLayout(new BorderLayout());
         setMinimumSize(new Dimension(550, 500));
         setBackground(Colors.getBackgroundColor());
@@ -101,20 +100,19 @@ public class ResultPanel extends JPanel implements Subscriber {
         };
     }
 
-    private void getData(Object data){
-        if (data != null && data instanceof ArrayList list){
-            if (list.getFirst() instanceof JobSeeker){
-                this.jobSeekerList = list;
+    private void getData(Event event, Object data){
+        if (event.getOutcome() != Event.Outcome.FAILURE || event.getOutcome() != Event.Outcome.NOT_FOUND) {
+            if (data != null && data instanceof ArrayList list) {
+                if (list.getFirst() instanceof JobSeeker) {
+                    this.jobSeekerList = list;
+                } else if (list.getFirst() instanceof JobOpening) {
+                    this.jobOpeningList = list;
+                }
+            } else if (data != null && data instanceof JobSeeker) {
+                this.jobSeeker = (JobSeeker) data;
+            } else if (data != null && data instanceof JobOpening) {
+                this.jobOpening = (JobOpening) data;
             }
-            else if (list.getFirst() instanceof JobOpening){
-                this.jobOpeningList = list;
-            }
-        }
-        else if (data != null && data instanceof JobSeeker){
-            this.jobSeeker = (JobSeeker) data;
-        }
-        else if (data != null && data instanceof JobOpening){
-            this.jobOpening = (JobOpening) data;
         }
     }
     private String getPrintout(boolean showSeekers){
@@ -123,7 +121,6 @@ public class ResultPanel extends JPanel implements Subscriber {
             if (event.getContents() instanceof List list && list.getFirst() instanceof String){
                 List<String> results = (List<String>) event.getContents();
                 for (String line : results){
-
                     String [] parts = line.split(";");
                     for (int i = 0; i < parts.length; i++){
                         printout.append(parts[i]);
@@ -149,26 +146,23 @@ public class ResultPanel extends JPanel implements Subscriber {
 
     public void checkInput(Controller.Event event) {
         this.event = event;
-
-        if (event.getAction() == Event.Action.VIEW){
-            displayList(event);
-        }
-        else if (event.getAction() == Event.Action.REMOVE || event.getAction() == Event.Action.ADD){
-            displayFoundTerm();
-        }
-        else if(event.getAction() == Event.Action.SEARCH){
-            if (jobOpening != null || jobSeeker != null) {
+        if (event.getOutcome() == Event.Outcome.OK) {
+            getData(event, event.getContents());
+            if (event.getAction() == Event.Action.VIEW) {
+                displayList(event);
+            } else if (event.getAction() == Event.Action.REMOVE || event.getAction() == Event.Action.ADD) {
                 displayFoundTerm();
-            }
-            else {
+            } else if (event.getAction() == Event.Action.SEARCH) {
+                if (jobOpening != null || jobSeeker != null) {
+                    displayFoundTerm();
+                } else {
+                    displayList(event);
+                }
+            } else if (event.getAction() == Event.Action.EDIT && event.getOutcome() == Event.Outcome.OK) {
+                displayFoundTerm();
+            } else {
                 displayList(event);
             }
-        }
-        else if (event.getAction() == Event.Action.EDIT && event.getOutcome() == Event.Outcome.OK) {
-            displayFoundTerm();
-        }
-        else {
-            displayList(event);
         }
     }
     public void addScrollBar(JPanel wrapperPanel, JTextArea resultArea){
