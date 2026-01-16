@@ -29,7 +29,8 @@ public class Event {
         MATCH_TERM_SUBMITTED,
         MATCH_TARGET_SELECTED,
         MATCH_STRATEGY_SELECTED,
-        MATCH_RESULT
+        MATCH_RESULT,
+        MATCH_FAIL
         }
 
     public enum Action {

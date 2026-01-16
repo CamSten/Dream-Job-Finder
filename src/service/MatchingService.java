@@ -30,7 +30,7 @@ public class MatchingService {
         returnResult(Event.Outcome.OK, allJobSeekers, phase);
     }
 
-    public void  getAllJobOpenings() {
+    public void getAllJobOpenings() {
         List<JobOpening> allJobOpenings = openingRepo.findAll();
         returnResult(Event.Outcome.OK, allJobOpenings, phase);
     }
@@ -48,7 +48,7 @@ public class MatchingService {
     public void findSeekersByName(String name) {
         List<JobSeeker> results = seekerRepo.findByName(name);
         Event.Outcome outcome = Event.Outcome.OK;
-        if (results.isEmpty()){
+        if (results.isEmpty()) {
             outcome = Event.Outcome.NOT_FOUND;
         }
         returnResult(outcome, results, Event.Phase.DISPLAY);
@@ -67,7 +67,7 @@ public class MatchingService {
     public void findJobOpeningsByTitle(String title) {
         List<JobOpening> results = openingRepo.findByTitle(title);
         Event.Outcome outcome = Event.Outcome.OK;
-        if (results.isEmpty()){
+        if (results.isEmpty()) {
             outcome = Event.Outcome.NOT_FOUND;
         }
         returnResult(outcome, results, Event.Phase.DISPLAY);
@@ -75,7 +75,7 @@ public class MatchingService {
 
     public void updateJobOpening(JobOpening opening) {
         openingRepo.update(opening);
-        returnResult(Event.Outcome.OK, opening.getTitle(), Event.Phase.COMPLETE);
+        returnResult(Event.Outcome.OK, opening, Event.Phase.COMPLETE);
     }
 
     public void deleteJobOpening(String id) {
@@ -106,23 +106,25 @@ public class MatchingService {
         // 4. Run matching loop
         for (JobSeeker seeker : seekers) {
             MatchResult result = strategy.match(seeker, job);
-            results.add(result);
+            if (result != null) {
+                results.add(result);
+            }
         }
-
-        // 5. Sort by score (highest first)
-        results.sort(Comparator.comparingInt(MatchResult::getScore).reversed());
-
-        if (!results.isEmpty()) {
-            Event.Outcome outcome = Event.Outcome.OK;
-            saveMatchReport(results, jobOpeningId+".txt");
-            List<String> report = getMatchReport(jobOpeningId+".txt");
-            returnResult(outcome, report, Event.Phase.MATCH_RESULT);
-        }
-        else {
+        if (results.isEmpty()) {
             Event.Outcome outcome = Event.Outcome.NOT_FOUND;
             returnResult(outcome, results, Event.Phase.MATCH_RESULT);
         }
 
+        else {
+            if( results.size() > 1) {
+                results.sort(Comparator.comparingInt(MatchResult::getScore).reversed());
+            }
+            Event.Outcome outcome = Event.Outcome.OK;
+            saveMatchReport(results, jobOpeningId+".txt");
+            getMatchReport(jobOpeningId+".txt");
+            List<String> report = getMatchReport(jobOpeningId+".txt");
+            returnResult(outcome, report, Event.Phase.MATCH_RESULT);
+        }
     }
 
     // Matches a candidate to all job openings
@@ -147,14 +149,16 @@ public class MatchingService {
             if (result != null) {
                 results.add(result);
             }
+
         }
         // 5. Sort by score (highest first)
         if (results.isEmpty()) {
             Event.Outcome outcome = Event.Outcome.NOT_FOUND;
             returnResult(outcome, results, Event.Phase.MATCH_RESULT);
         }
+
         else {
-            if(results.size() > 1) {
+            if( results.size() > 1) {
                 results.sort(Comparator.comparingInt(MatchResult::getScore).reversed());
             }
             Event.Outcome outcome = Event.Outcome.OK;
@@ -172,13 +176,18 @@ public class MatchingService {
             String name = ";";
             writer.println("=== MATCH REPORT ===");
             for (MatchResult result : results) {
-               if (event.getSubject() == Event.Subject.OPENING){
-                        name = "Candidate: " + result.getJobSeeker().getFullName();
-                        writer.println(name);
-                    }
-                writer.println("Job: " + result.getJobOpening().getTitle());
+                if (event.getSubject() == Event.Subject.OPENING){
+                    name = "Candidate: " + result.getJobSeeker().getFullName();
+                    writer.println(name);
+                }
+                else if (event.getSubject() == Event.Subject.SEEKER){
+                    name = result.getJobOpening().getTitle();
+                    writer.println("Job: " + name);
+                }
                 writer.println("Score: " + result.getScore());
                 writer.println("-------------------------");
+
+
             }
             System.out.println("Report saved to " + filename);
         } catch (IOException e) {
@@ -226,12 +235,12 @@ public class MatchingService {
             case EDIT -> {
                 if (event.getExtraContents() == null) {
                     String name = (String) event.getContents();
-                            if (event.getSubject() == Event.Subject.SEEKER) {
-                                findSeekersByName(name);
-                            }
-                            else if (event.getSubject() == Event.Subject.OPENING){
-                                findJobOpeningsByTitle(name);
-                            }
+                    if (event.getSubject() == Event.Subject.SEEKER) {
+                        findSeekersByName(name);
+                    }
+                    else if (event.getSubject() == Event.Subject.OPENING){
+                        findJobOpeningsByTitle(name);
+                    }
                 } else {
                     if (subject == Event.Subject.SEEKER) {
                         JobSeeker jobSeeker = (JobSeeker) event.getContents();
@@ -294,7 +303,7 @@ public class MatchingService {
                         }
                         else if (event.getSubject() == Event.Subject.OPENING){
                             JobOpening opening = (JobOpening) event.getContents();
-                          matchCandidatesToJob(opening.getId(), strategy);
+                            matchCandidatesToJob(opening.getId(), strategy);
                         }
                     }
                 }

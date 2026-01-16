@@ -95,16 +95,41 @@ public class OptionPanel extends JPanel implements Subscriber{
             }
         }
         else {
-            for (int i = 0; i < jobOpeningList.size(); i++){
-                printout = jobOpeningList.get(i).printout() + "\n\n";
-                JPanel singleResultPanel = new JPanel();
-                JButton result = getNameButtonOpening(i, printout);
-                singleResultPanel.add(Box.createVerticalStrut(5));
-                singleResultPanel.add(result);
-                singleResultPanel.add(Box.createVerticalStrut(5));
-                allSingleResultPanels.add(singleResultPanel);
+           for (JobOpening opening: jobOpeningList) {
+               JPanel singleResultPanel = new JPanel();
+               decorator.adjustSingleResultPanel(singleResultPanel);
+               printout = opening.printoutWithoutName() + "\n";
+
+
+
+               String name = opening.getTitle();
+               JLabel nameLabel = new JLabel("Title: ");
+               decorator.adjustLabel(nameLabel);
+               JButton nameButton = getNameButtonOpening(name, opening);
+               JPanel namePanel = getAdjustedInputPanel(nameLabel, nameButton);
+               decorator.adjustSingleResultLine(namePanel);
+               String[] part = printout.split("-");
+               singleResultPanel.add(namePanel);
+               singleResultPanel.add(Box.createVerticalStrut(5));
+
+               for (String s : part) {
+                       JPanel singleResultLine = new JPanel();
+                       decorator.adjustSingleResultLine(singleResultLine);
+                       String[] text = s.split(";");
+                       JLabel infoTextType = new JLabel(text[0]);
+                       JTextArea infoTextInput = new JTextArea(text[1]);
+                       decorator.adjustLabel(infoTextType);
+                       decorator.adjustTextArea(infoTextInput);
+                       singleResultLine.add(infoTextType);
+                       singleResultLine.add(infoTextInput);
+                       singleResultPanel.add(singleResultLine);
+                       singleResultPanel.add(Box.createVerticalStrut(5));
+                   }
+                   allSingleResultPanels.add(singleResultPanel);
+               }
+
+
             }
-        }
         return allSingleResultPanels;
     }
     public JPanel getAdjustedInputPanel (JLabel label, Object inputArea){
@@ -135,13 +160,15 @@ public class OptionPanel extends JPanel implements Subscriber{
         nameButton.addActionListener(_ -> Update(newEvent));
         return nameButton;
     }
-    public JButton getNameButtonOpening(int i, String printout) {
-        JButton result = new JButton(printout);
-        result.setHorizontalAlignment(SwingConstants.LEFT);
-        result.setContentAreaFilled(true);
-        decorator.adjustButton(result);
-        result.addActionListener(_ -> Update(Event.select(event.getAction(), subject, jobOpeningList.get(i))));
-        return result;
+
+
+    public JButton getNameButtonOpening(String title, JobOpening thisOpening) {
+        JButton nameButton = new JButton(title);
+        nameButton.setHorizontalAlignment(SwingConstants.LEFT);
+        decorator.adjustButton(nameButton);
+        Event newEvent = Event.select(event.getAction(), subject, thisOpening);
+        nameButton.addActionListener(_ -> Update(newEvent));
+        return nameButton;
     }
     public void addScrollBar(JPanel inputPanel, JPanel panel){
         inputPanel.removeAll();

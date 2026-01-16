@@ -82,19 +82,19 @@ public class SeekerPanel extends JPanel implements Subscriber{
         menuButtons.setBackground(Colors.getButtonBackgroundColor());
         menuButtons.setOpaque(true);
         menuButtons.setLayout(new BoxLayout(menuButtons, BoxLayout.Y_AXIS));
-        menuButtons.setPreferredSize(new Dimension(300, allOptionButtons.size() * 60));
-        menuButtons.setMinimumSize(new Dimension(300, allOptionButtons.size() * 60));
-        menuButtons.setMaximumSize(new Dimension(300, Integer.MAX_VALUE));
+        menuButtons.setPreferredSize(new Dimension(350, allOptionButtons.size() * 60));
+        menuButtons.setMinimumSize(new Dimension(350, allOptionButtons.size() * 60));
+        menuButtons.setMaximumSize(new Dimension(350, Integer.MAX_VALUE));
         menuButtons.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         for (JButton button : allOptionButtons){
             button.setFont(Fonts.getButtonFont());
             button.setBackground(Colors.getButtonBackgroundColor());
             button.setForeground(Colors.getButtonTextColor());
-            button.setPreferredSize(new Dimension(250, 45) );
-            button.setMinimumSize(new Dimension(250, 45));
-            button.setMinimumSize(new Dimension(250, 45));
-            button.add(Box.createHorizontalStrut(250));
+            button.setPreferredSize(new Dimension(300, 45) );
+            button.setMinimumSize(new Dimension(300, 45));
+            button.setMinimumSize(new Dimension(300, 45));
+            button.add(Box.createHorizontalStrut(300));
             button.setAlignmentX(Component.CENTER_ALIGNMENT);
             button.setBorder(BorderFactory.createLineBorder(Colors.getBorderColor(), 5, true));
 //

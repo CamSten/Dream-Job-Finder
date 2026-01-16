@@ -77,9 +77,9 @@ public class PanelDecorator {
     public void adjustLabel(JLabel label){
         label.setForeground(Colors.getButtonTextColor());
         label.setBackground(Colors.getBorderColor());
-        label.setPreferredSize(new Dimension(200, 45));
-        label.setMinimumSize(new Dimension(200, 45));
-        label.setMinimumSize(new Dimension(200, 45));
+        label.setPreferredSize(new Dimension(250, 45));
+        label.setMinimumSize(new Dimension(250, 45));
+        label.setMinimumSize(new Dimension(250, 45));
         label.setFont(Fonts.getInputPromptFont());
     }
     public void editInputField(JTextField inputField) {

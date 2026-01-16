@@ -101,7 +101,6 @@ public class JobSeeker implements Serializable {
     }
     public String printoutWithoutName(){
         return "ID: " + ";" + id  + "-"  + "\nYears of experience: " + ";" + yearsExperience + "-"  + "\nWork area: " + ";" + workArea + "-" +"\nEducation level: " + ";" + educationLevel;
-
     }
 
     // reads from text file line and creates object

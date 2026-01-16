@@ -95,6 +95,10 @@ public class JobOpening implements Serializable {
     public String printout(){
         return "ID: " + id + "\nTitle: " + title + "\nRequired education level: " + requiredEducation + "\nRequired years of experience: " + minYearsExperience + "\nWork area: " + workArea;
     }
+    public String printoutWithoutName(){
+        return "ID: " + ";" + id  + "-"  + "\nYears of experience: " + ";" + minYearsExperience + "-"  + "\nWork area: " + ";" + workArea + "-" +"\nEducation level: " + ";" + requiredEducation;
+    }
+
 
     // converts to string so we can save to text file
     public String toDataString() {
